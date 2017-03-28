@@ -1,2 +1,2 @@
 # SensorModule
-Code for the sensormodule.
+Code for the sensor module.
