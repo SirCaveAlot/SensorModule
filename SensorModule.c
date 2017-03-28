@@ -6,17 +6,36 @@
  */ 
 
 
+#define 	F_CPU   128000UL
+
 #include <avr/io.h>
 #include <stdlib.h>
 #include <avr/interrupt.h>
+#include <stdint.h>
+#include <util/delay.h>
+#include <math.h>
 
 #include "SensorModule.h"
 
 
-volatile int val;
+
+
+
+volatile uint8_t ADread;
+
+uint8_t sensor_values[8];
+
+volatile uint8_t curr_sensor;
+
+
 
 int main(void)
-{
+{   
+	//set up for global variables
+	sensor_values_zero();
+	ADread = 0;
+	curr_sensor = 0;
+	
 	interrupt_setup();
 	
 	DDRB = 0xFF;
@@ -28,40 +47,28 @@ int main(void)
 
 
 
-//EIMSK sets INT0 as interrupt
-//EICRA activates interrupts on rising edge
-//ADMUX sets the highest bits in the AD converter to ADCH
-void interrupt_setup(void)
-{
-	 
-	 EIMSK = 1<<INT0;
-	 EICRA = (1<<ISC01) | (1<<ISC00);
-	 ADMUX = (1<<ADLAR);
-	 
-}
-
-
-
-
 
 
 ISR(INT0_vect, ISR_NOBLOCK)
 {
-	int nr = 1;
+	uint8_t nr = 3;
 	
+	//read_single_analog(2);
 	read_analog_sensors(nr);
 	
 }
 
 
+//interrupt vector for the ADC
+
 ISR(ADC_vect){
 	
-	PORTB = ADCH;
+
+	sensor_values[curr_sensor] = ADCH;
+	
 	ADCSRA = 0x00;
 	
-	
-	
-	val = 1;
+	ADread = 1;
 	
 	sei();
 }
@@ -70,16 +77,20 @@ ISR(ADC_vect){
 
 //reads analog sensors from A0-AN. 
 //nr_of_sensors is the number of inputs connected.
-//requires a global int named val.
+//requires a global int named ADread.
 
-void read_analog_sensors(int nr_of_sensors)
+void read_analog_sensors(uint8_t nr_of_sensors)
 {
 	
 	
-	int localval = 0;
+	uint8_t localADread = 0;
 	
-	ADMUX = (1<<ADLAR);
+	//temporary code
+	++ADMUX; 
+	++ADMUX;
+	//---
 	
+	PORTB = 0xFF;
 	
 	for (int i = 0 ; i < nr_of_sensors ; ++i)
 	{
@@ -88,29 +99,112 @@ void read_analog_sensors(int nr_of_sensors)
 		do
 		{
 			cli();
-			localval = val;
+			localADread = ADread;
 			sei();
 			
-		} while (localval == 0);
+		} while (localADread == 0);
 		
 		
 		++ADMUX;
-		val = 0;
-		localval = 0;
+		++curr_sensor;
+		
+		ADread = 0;
+		localADread = 0;
 	
-		//this is temporary
-	    delay_fcn(20000);
+	
 	}
+	
+	PORTB = 0x00;
+	
+	//display_values(nr_of_sensors);
+	//reset values
+	curr_sensor = 0;
+	ADMUX = (1<<ADLAR);
+	
+}
+
+
+void read_single_analog(uint8_t sensor_nr)
+{
+      
+	  uint8_t localADread = 0;
+	  
+	  ADMUX = ADMUX + sensor_nr;
+	  ADCSRA = 0xEC;
+	  
+	  do
+	  {
+		  cli();
+		  localADread = ADread;
+		  sei();
+		  
+	  } while (localADread == 0);
+	  
+	  
+	 
+	  ADread = 0;
+	  localADread = 0;
+	  ADMUX = (1<<ADLAR);
+	  
 }
 
 
 
 
-void delay_fcn(int clkcycles)
+double IR_conversion(uint8_t val)
 {
 	
-	for(int i = 0 ; i < clkcycles ; ++i)
+	return (55.25 * exp(-0.05762 * val)) + (14.2 * exp(-0.009759 * val));
+	
+	
+}
+
+
+
+
+
+
+
+
+
+
+void display_values(uint8_t nr)
+{
+	for(int i = 0 ; i < nr ; ++i)
 	{
+		
+		PORTB = sensor_values[i];
+		
+		_delay_ms (1000);
+		//delay_fcn(30000);
+		
+	}
+	
+	
+}
+
+
+
+
+//EIMSK sets INT0 as interrupt
+//EICRA activates interrupts on rising edge
+//ADMUX sets the highest bits in the AD converter to ADCH
+void interrupt_setup(void)
+{
+	
+	EIMSK = 1<<INT0;
+	EICRA = (1<<ISC01) | (1<<ISC00);
+	ADMUX = (1<<ADLAR);
+	
+}
+
+
+void sensor_values_zero(void)
+{
+	for(uint8_t i = 0 ; i < 8 ; ++i)
+	{
+		
+		sensor_values[i] = 0;
 		
 	}
 	
