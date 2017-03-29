@@ -46,10 +46,12 @@ void spi_init(uint8_t lsbfirst,
   SPCR = (
            (1<<SPE) | //enable SPI
            ((lsbfirst & __SPI_LSBFIRST_MASK)<<DORD) | //set msb/lsb ordering
-           ((master & __SPI_MASTER_MASK)<<MSTR) | //set master/slave mode
+           (master<<MSTR) | //set master/slave mode
            ((mode & __SPI_MODE_MASK)<<CPHA) | //set mode
            (clkrate & __SPI_SPEED_MASK<<SPR0) //set speed
          );
+		 
+  //SPCR |= (1<<MSTR);
   //set double speed bit
   SPSR = ((dblclk&__SPI_DBLCLK_MASK)<<SPI2X);
 }

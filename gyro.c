@@ -38,18 +38,26 @@ void ss_to_high_gyro(void)
 bool Activate_gyro(void)
 {
 	bool AD_ready = false;
-	uint8_t result = 0;
-	
 	
 	ss_to_low_gyro();
-	cli();
-	result = spi_send(0b10010100);
-	sei();
+	spi_send(0b10010100);
+	uint8_t high_byte = spi_send(0);
 	ss_to_high_gyro();
 	
-	//check last bit
-	AD_ready = (result & (0<<7));
+	AD_ready = (high_byte & (0<<7));
 	
 	return AD_ready;
 }
 
+
+//not finished 
+uint16_t Read_gyro(void)
+{
+	
+	ss_to_low_gyro();
+	spi_send(0b10010100);
+	uint8_t high_byte = spi_send(0);
+	ss_to_high_gyro();
+	
+	
+}

@@ -14,6 +14,7 @@
 #include <stdint.h>
 #include <util/delay.h>
 #include <math.h>
+#include <stdbool.h>
 
 #include "SensorModule.h"
 #include "spi.h"
@@ -30,6 +31,8 @@ volatile uint8_t curr_sensor;
 
 
 
+
+
 int main(void)
 {   
 	//set up for global variables
@@ -39,7 +42,7 @@ int main(void)
 	*/
 	SPI_setup();
 	interrupt_setup();
-	spi_init(0,1,0,3,0);
+	spi_init(0,1,0,1,0);
 	
 	//DDRB = 0xFF;
 	
@@ -52,19 +55,27 @@ int main(void)
 
 
 
-ISR(INT0_vect)
+ISR(INT0_vect,ISR_NOBLOCK)
 {
 	//uint8_t nr = 3;
 	
 	//read_single_analog(2);
 	//read_analog_sensors(nr);
-	bool gyro_active;
 	
-	do
-	{
+	//DDRD |= (1<<DDD3);
+	//PORTD |= (1<<PORTD3);
+	
+	bool gyro_active = false;
+	
+	
 		gyro_active = Activate_gyro();
-	}while(!gyro_active);
+	//}while(!gyro_active);
 	
+	if(gyro_active)
+	{
+		DDRD |= (1<<DDD3);
+		PORTD |= (1<<PORTD3); 
+	}
 	
 	
 	
@@ -96,7 +107,7 @@ void SPI_setup(void)
 
 	//add more values later
 
-	PORTB = (1<<PORTB0);
+	PORTB = (1<<PORTB0) | (1<<PORTB4);
 }
 
 
