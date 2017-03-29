@@ -16,7 +16,8 @@
 #include <math.h>
 
 #include "SensorModule.h"
-
+#include "spi.h"
+#include "gyro.h"
 
 
 
@@ -32,13 +33,15 @@ volatile uint8_t curr_sensor;
 int main(void)
 {   
 	//set up for global variables
-	sensor_values_zero();
+	/*sensor_values_zero();
 	ADread = 0;
 	curr_sensor = 0;
-	
+	*/
+	SPI_setup();
 	interrupt_setup();
+	spi_init(0,1,0,3,0);
 	
-	DDRB = 0xFF;
+	//DDRB = 0xFF;
 	
 	sei();
 	
@@ -49,12 +52,21 @@ int main(void)
 
 
 
-ISR(INT0_vect, ISR_NOBLOCK)
+ISR(INT0_vect)
 {
-	uint8_t nr = 3;
+	//uint8_t nr = 3;
 	
 	//read_single_analog(2);
-	read_analog_sensors(nr);
+	//read_analog_sensors(nr);
+	bool gyro_active;
+	
+	do
+	{
+		gyro_active = Activate_gyro();
+	}while(!gyro_active);
+	
+	
+	
 	
 }
 
@@ -74,6 +86,27 @@ ISR(ADC_vect){
 }
 
 
+
+
+void SPI_setup(void)
+{
+	
+	//ss signal to gyro
+	DDRB = (1<<DDB0);
+
+	//add more values later
+
+	PORTB = (1<<PORTB0);
+}
+
+
+
+void Overall_setup(void)
+{
+	
+	
+	
+}
 
 //reads analog sensors from A0-AN. 
 //nr_of_sensors is the number of inputs connected.
