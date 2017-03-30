@@ -14,8 +14,19 @@
 
 void ss_to_low_gyro(void);
 
-bool Activate_gyro(void);
+void Activate_gyro(void);
 
 void ss_to_high_gyro(void);
+
+bool Check_EOC_bit(void);
+
+uint16_t Read_gyro(void);
+
+void Start_conversion_gyro(void);
+
+void Start_gyro(void);
+
+uint8_t Get_angular_velocity(void);
+
 
 #endif /* GYRO_H_ */

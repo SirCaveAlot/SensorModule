@@ -19,19 +19,19 @@
 #include "SensorModule.h"
 #include "spi.h"
 #include "gyro.h"
+#include "analog_sensors.h"
 
 
 
 
-volatile uint8_t ADread;
 
 uint8_t sensor_values[8];
 
 volatile uint8_t curr_sensor;
 
+bool _gyro_activated = false;
 
-
-
+uint8_t value = 0;	
 
 int main(void)
 {   
@@ -43,6 +43,8 @@ int main(void)
 	SPI_setup();
 	interrupt_setup();
 	spi_init(0,1,0,1,0);
+	DDRD |= (1<<DDD3);
+
 	
 	//DDRB = 0xFF;
 	
@@ -55,26 +57,26 @@ int main(void)
 
 
 
-ISR(INT0_vect,ISR_NOBLOCK)
+ISR(INT0_vect)
 {
-	//uint8_t nr = 3;
 	
 	//read_single_analog(2);
 	//read_analog_sensors(nr);
 	
-	//DDRD |= (1<<DDD3);
-	//PORTD |= (1<<PORTD3);
 	
-	bool gyro_active = false;
-	
-	
-		gyro_active = Activate_gyro();
-	//}while(!gyro_active);
-	
-	if(gyro_active)
+	if(_gyro_activated)
 	{
-		DDRD |= (1<<DDD3);
-		PORTD |= (1<<PORTD3); 
+		
+		value = Get_angular_velocity();
+		PORTD |= (0<<PORTD3);
+	}
+	else
+	{
+		Start_gyro();
+		_gyro_activated = true;
+		PORTD |= (1<<PORTD3);
+	    
+		
 	}
 	
 	
@@ -84,21 +86,7 @@ ISR(INT0_vect,ISR_NOBLOCK)
 
 //interrupt vector for the ADC
 
-ISR(ADC_vect){
-	
-
-	sensor_values[curr_sensor] = ADCH;
-	
-	ADCSRA = 0x00;
-	
-	ADread = 1;
-	
-	sei();
-}
-
-
-
-
+//sets up the SPI properly and activates the Gyro.
 void SPI_setup(void)
 {
 	
@@ -108,6 +96,7 @@ void SPI_setup(void)
 	//add more values later
 
 	PORTB = (1<<PORTB0) | (1<<PORTB4);
+	Activate_gyro();
 }
 
 
@@ -123,74 +112,6 @@ void Overall_setup(void)
 //nr_of_sensors is the number of inputs connected.
 //requires a global int named ADread.
 
-void read_analog_sensors(uint8_t nr_of_sensors)
-{
-	
-	
-	uint8_t localADread = 0;
-	
-	//temporary code
-	++ADMUX; 
-	++ADMUX;
-	//---
-	
-	PORTB = 0xFF;
-	
-	for (int i = 0 ; i < nr_of_sensors ; ++i)
-	{
-		ADCSRA = 0xEC;
-		
-		do
-		{
-			cli();
-			localADread = ADread;
-			sei();
-			
-		} while (localADread == 0);
-		
-		
-		++ADMUX;
-		++curr_sensor;
-		
-		ADread = 0;
-		localADread = 0;
-	
-	
-	}
-	
-	PORTB = 0x00;
-	
-	//display_values(nr_of_sensors);
-	//reset values
-	curr_sensor = 0;
-	ADMUX = (1<<ADLAR);
-	
-}
-
-
-void read_single_analog(uint8_t sensor_nr)
-{
-      
-	  uint8_t localADread = 0;
-	  
-	  ADMUX = ADMUX + sensor_nr;
-	  ADCSRA = 0xEC;
-	  
-	  do
-	  {
-		  cli();
-		  localADread = ADread;
-		  sei();
-		  
-	  } while (localADread == 0);
-	  
-	  
-	 
-	  ADread = 0;
-	  localADread = 0;
-	  ADMUX = (1<<ADLAR);
-	  
-}
 
 
 
@@ -243,13 +164,3 @@ void interrupt_setup(void)
 }
 
 
-void sensor_values_zero(void)
-{
-	for(uint8_t i = 0 ; i < 8 ; ++i)
-	{
-		
-		sensor_values[i] = 0;
-		
-	}
-	
-}
