@@ -71,3 +71,19 @@ uint8_t spi_send(uint8_t value){
 
   return result;
 }
+
+
+
+void ss_to_low(uint8_t port_nr)
+{
+	
+	PORTB &= ~port_nr;
+	
+}
+
+void ss_to_high(uint8_t port_nr)
+{
+	
+	PORTB |= port_nr;
+	
+}

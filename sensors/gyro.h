@@ -5,26 +5,26 @@
  *  Author: marwa079
  */ 
 
-#include <stdbool.h>
+
 
 
 #ifndef GYRO_H_
 #define GYRO_H_
 
+#include <stdbool.h>
+#include <stdlib.h>
 
-void ss_to_low_gyro(void);
+#define _gyro_ss 0b00000001
 
-void Activate_gyro(void);
-
-void ss_to_high_gyro(void);
+bool Activate_gyro(void);
 
 bool Check_EOC_bit(void);
 
-uint16_t Read_gyro(void);
+uint8_t Read_gyro(void);
 
 void Start_conversion_gyro(void);
 
-void Start_gyro(void);
+bool Start_gyro(void);
 
 uint8_t Get_angular_velocity(void);
 

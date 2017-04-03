@@ -11,11 +11,11 @@
 #include <stdint.h>
 #include <avr/interrupt.h>
 
-volatile uint8_t curr_sensor;
+static volatile uint8_t curr_sensor;
 
 volatile uint8_t ADread = 0;
 
-uint8_t _analog_sensor_values[8];
+volatile uint8_t _analog_sensor_values[8];
 
 ISR(ADC_vect){
 	
@@ -33,40 +33,20 @@ ISR(ADC_vect){
 
 
 
-void read_analog_sensors(uint8_t nr_of_sensors, uint8_t curr_sensor)
+void read_analog_sensors(uint8_t sensor_bits)
 {
 	
-	
-	
-	
-	for (int sensor = 0 ; sensor < nr_of_sensors ; ++sensor)
+	for (int sensor = 0 ; sensor < 8 ; ++sensor)
 	{
+		curr_sensor = sensor;
 		
-		read_single_analog(sensor);
-		/*ADCSRA = 0xEC;
-		
-		do
+		if((1<<sensor) == (sensor_bits & (1<<sensor)))
 		{
-			cli();
-			localADread = ADread;
-			sei();
-			
-		} while (localADread == 0);
-		
-		
-		++ADMUX;
-		++curr_sensor;
-		
-		ADread = 0;
-		localADread = 0;
-		*/
+		    read_single_analog(sensor);	
+		}
 		
 	}
 	
-	
-	
-	//display_values(nr_of_sensors);
-	//reset values
 	curr_sensor = 0;
 	
 }

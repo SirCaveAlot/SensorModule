@@ -33,4 +33,8 @@ void spi_init(uint8_t lsbfirst,
 //  returns uint8_t - the data received during sending
 uint8_t spi_send(uint8_t value);
 
+void ss_to_low(uint8_t port_nr);
+
+void ss_to_high(uint8_t port_nr);
+
 #endif

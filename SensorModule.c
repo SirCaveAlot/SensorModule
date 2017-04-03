@@ -18,8 +18,10 @@
 
 #include "SensorModule.h"
 #include "spi.h"
-#include "gyro.h"
-#include "analog_sensors.h"
+#include "sensors/gyro.h"
+#include "sensors/analog_sensors.h"
+#include "modes/test_mode.h"
+#include "global_definitions.h"
 
 
 
@@ -40,9 +42,11 @@ int main(void)
 	ADread = 0;
 	curr_sensor = 0;
 	*/
-	SPI_setup();
+	
 	interrupt_setup();
 	spi_init(0,1,0,1,0);
+	
+	SPI_setup();
 	DDRD |= (1<<DDD3);
 
 	
@@ -63,21 +67,19 @@ ISR(INT0_vect)
 	//read_single_analog(2);
 	//read_analog_sensors(nr);
 	
+	test_send_to_comm(0b00011000);
 	
-	if(_gyro_activated)
-	{
 		
-		value = Get_angular_velocity();
-		PORTD |= (0<<PORTD3);
-	}
-	else
-	{
+ //	value = Get_angular_velocity();
+//		PORTD |= (1<<PORTD3);
+
+/*
 		Start_gyro();
 		_gyro_activated = true;
 		PORTD |= (1<<PORTD3);
-	    
+	*/    
 		
-	}
+	
 	
 	
 	
@@ -90,13 +92,13 @@ ISR(INT0_vect)
 void SPI_setup(void)
 {
 	
-	//ss signal to gyro
-	DDRB = (1<<DDB0);
+	//ss signal to gyro and comm
+	DDRB |= (1<<DDB0) | (1<<DDB1) | (1<<DDB4);
 
 	//add more values later
 
-	PORTB = (1<<PORTB0) | (1<<PORTB4);
-	Activate_gyro();
+	PORTB |= (1<<PORTB0) | (1<<PORTB1) | (1<<PORTB4);
+//	Start_gyro();
 }
 
 
@@ -104,14 +106,10 @@ void SPI_setup(void)
 void Overall_setup(void)
 {
 	
-	
+	_comm_mode = 'T';
+	_steering_mode = 'T';
 	
 }
-
-//reads analog sensors from A0-AN. 
-//nr_of_sensors is the number of inputs connected.
-//requires a global int named ADread.
-
 
 
 
