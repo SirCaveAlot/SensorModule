@@ -24,7 +24,12 @@
 #include "global_definitions.h"
 
 
+//maybe change
+//manual mode == high input on PD2
 
+
+#define manual_mode_ 1<<2;
+char _steering_mode;
 
 
 uint8_t sensor_values[8];
@@ -109,6 +114,75 @@ void Overall_setup(void)
 	_comm_mode = 'T';
 	_steering_mode = 'T';
 	
+}
+
+
+
+
+
+void Mode_loop()
+{
+
+    char curr_steering_mode = T;
+
+
+    while(1)
+    {
+
+      if(  manual_mode_ == (PORTD & manual_mode))
+      {
+          
+    
+      }
+      else
+      {
+      
+          if(_steering_mode != curr_steering_mode)
+          {
+              _steering_mode = curr_steering_mode;
+            //  Reset_globals();
+        
+          }
+    
+          switch(_steering_mode)
+          {
+            
+            //drive straight mode
+            case D:
+              //  Straight_mode();
+                break;
+            
+            
+            //rotate mode
+            case R:
+                //Rotate_mode();
+                break;
+              
+              
+            //laser mode
+            case L:
+        
+                break;
+        
+            //test mode
+            case T:
+               // Test_mode();
+                break;
+        
+            default: 
+              
+                //send 0 with delay
+                break;
+        
+        
+          }
+        
+      }
+      
+      
+      
+    }
+
 }
 
 
