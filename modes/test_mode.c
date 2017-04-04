@@ -16,7 +16,11 @@ char test_send_to_comm(uint8_t val)
 	
 	ss_to_low(comm_ss_port_);
 	
-	return_mode = spi_send(val);
+	spi_send(0b11100001);
+	spi_send(0b10011111);
+	spi_send(0b11111111);
+	spi_send('B');  //tror det borde gå att skicka char också, testa detta
+	return_mode = spi_send(0b11111111);
 	
 	ss_to_high(comm_ss_port_);
 	
