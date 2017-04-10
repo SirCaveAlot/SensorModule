@@ -12,6 +12,6 @@
 
 
 char test_send_to_comm(uint8_t);
-
+void test_Laser_max_freq(void);
 
 #endif /* TEST_MODE_H_ */

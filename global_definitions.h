@@ -9,7 +9,7 @@
 #ifndef GLOBAL_DEFINITIONS_H_
 #define GLOBAL_DEFINITIONS_H_
 
-
+#define gyro_ss_port_ 0b00000001
 #define comm_ss_port_ 0b00000010
 #define steering_ss_port_ 0b00001000
 

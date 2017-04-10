@@ -22,14 +22,11 @@
 #include "sensors/analog_sensors.h"
 #include "modes/test_mode.h"
 #include "global_definitions.h"
+#include "UART.h"
+//#include "modes/laser_mode.h"
 
 
-//maybe change
-//manual mode == high input on PD2
 
-
-#define manual_mode_ 1<<2;
-char _steering_mode;
 
 
 uint8_t sensor_values[8];
@@ -40,70 +37,31 @@ bool _gyro_activated = false;
 
 uint8_t value = 0;	
 
-int main(void)
-{   
-	//set up for global variables
-	/*sensor_values_zero();
-	ADread = 0;
-	curr_sensor = 0;
-	*/
-	
-	interrupt_setup();
-	spi_init(0,1,0,1,0);
-	
-	SPI_setup();
-	DDRD |= (1<<DDD3);
+bool max_speed_bool = true;
 
-	
-	//DDRB = 0xFF;
-	
-	sei();
-	
-    while(1);
-}
-
-
-
-
-
-ISR(INT0_vect)
+//------------------SETUP----------------------------------------------
+//EIMSK sets INT0 as interrupt
+//EICRA activates interrupts on rising edge
+//ADMUX sets the highest bits in the AD converter to ADCH
+void interrupt_setup(void)
 {
 	
-	//read_single_analog(2);
-	//read_analog_sensors(nr);
-	
-	test_send_to_comm(0b00011000);
-	
-		
- //	value = Get_angular_velocity();
-//		PORTD |= (1<<PORTD3);
-
-/*
-		Start_gyro();
-		_gyro_activated = true;
-		PORTD |= (1<<PORTD3);
-	*/    
-		
-	
-	
-	
+	EIMSK = 1<<INT0;
+	EICRA = (1<<ISC01) | (1<<ISC00);
+	ADMUX = (1<<ADLAR);
 	
 }
 
-
-//interrupt vector for the ADC
-
-//sets up the SPI properly and activates the Gyro.
 void SPI_setup(void)
 {
 	
-	//ss signal to gyro and comm
+	//ss signal to gyro, comm and steering
 	DDRB |= (1<<DDB0) | (1<<DDB1) | (1<<DDB4);
 
 	//add more values later
 
-	PORTB |= (1<<PORTB0) | (1<<PORTB1) | (1<<PORTB4);
-//	Start_gyro();
+	PORTB |= gyro_ss_port_ | comm_ss_port_ | steering_ss_port_;
+	//	Start_gyro();
 }
 
 
@@ -114,76 +72,143 @@ void Overall_setup(void)
 	_comm_mode = 'T';
 	_steering_mode = 'T';
 	
+	DDRB = 0xFF;
+	
 }
 
 
+//interrupt vector for the ADC
+
+//sets up the SPI properly and activates the Gyro.
+ISR(INT0_vect)
+{
+	
+	//read_single_analog(2);
+	//read_analog_sensors(nr);
+	
+	//test_send_to_comm(0b00011000);
+    max_speed_bool = !max_speed_bool; 
+	if(max_speed_bool)
+	{
+		Enable_USART_interrupt();
+	}
+	else
+	{
+		Disable_USART_interrupt();
+	}
+	
+	
+}
+
+
+
+//--------------MAIN----------------------------------------------------------
+
+
+
+int main(void)
+{   
+	//set up for global variables
+	/*sensor_values_zero();
+	ADread = 0;
+	curr_sensor = 0;
+	*/
+	Overall_setup();
+	interrupt_setup();
+	spi_init(0,1,0,1,0);
+	
+	SPI_setup();
+	USART_Init(UBBR);
+	DDRD |= (1<<DDD3);
+
+	
+	//DDRB = 0xFF;
+	Enable_USART_interrupt();
+	
+	
+    while(1)
+	{
+	    test_Laser_max_freq();
+	};
+}
 
 
 
 void Mode_loop()
 {
 
-    char curr_steering_mode = T;
+	//char curr_steering_mode = 'T';
+    _steering_mode = 'T';
 
-
-    while(1)
-    {
-
-      if(  manual_mode_ == (PORTD & manual_mode))
-      {
-          
-    
-      }
-      else
-      {
-      
-          if(_steering_mode != curr_steering_mode)
-          {
-              _steering_mode = curr_steering_mode;
-            //  Reset_globals();
-        
-          }
-    
-          switch(_steering_mode)
-          {
-            
-            //drive straight mode
-            case D:
-              //  Straight_mode();
-                break;
-            
-            
-            //rotate mode
-            case R:
-                //Rotate_mode();
-                break;
-              
-              
-            //laser mode
-            case L:
-        
-                break;
-        
-            //test mode
-            case T:
-               // Test_mode();
-                break;
-        
-            default: 
-              
-                //send 0 with delay
-                break;
-        
-        
-          }
-        
-      }
-      
-      
-      
-    }
+	while(1)
+	{
+                              //change this function
+		if(  manual_mode_ == (PORTD & 0b00001101))
+		{
+			
+			
+		}
+		else
+		{
+			/*
+			if(_steering_mode != curr_steering_mode)
+			{
+				_steering_mode = curr_steering_mode;
+				//  Reset_globals();
+				
+			}
+			*/
+			switch(_steering_mode)
+			{
+				
+				//drive straight mode
+				case 'D':
+				//  Straight_mode();
+				break;
+				
+				
+				//rotate mode
+				case 'R':
+				//Rotate_mode();
+				break;
+				
+				
+				//laser mode
+				case 'L':
+				
+				break;
+				
+				//test mode
+				case 'T':
+				 //  Test_mode();
+				break;
+				
+				default:
+				
+				//send 0 with delay
+				break;
+				
+				
+			}
+			
+		}
+		
+		
+		
+	}
 
 }
+
+int count = 0;
+
+
+
+
+
+
+
+
+
 
 
 
@@ -197,42 +222,5 @@ double IR_conversion(uint8_t val)
 }
 
 
-
-
-
-
-
-
-
-
-void display_values(uint8_t nr)
-{
-	for(int i = 0 ; i < nr ; ++i)
-	{
-		
-		PORTB = sensor_values[i];
-		
-		_delay_ms (1000);
-		//delay_fcn(30000);
-		
-	}
-	
-	
-}
-
-
-
-
-//EIMSK sets INT0 as interrupt
-//EICRA activates interrupts on rising edge
-//ADMUX sets the highest bits in the AD converter to ADCH
-void interrupt_setup(void)
-{
-	
-	EIMSK = 1<<INT0;
-	EICRA = (1<<ISC01) | (1<<ISC00);
-	ADMUX = (1<<ADLAR);
-	
-}
 
 

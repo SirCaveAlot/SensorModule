@@ -6,6 +6,7 @@
  */ 
 
 #include "laser_mode.h"
+#include "../UART.h"
 #include <stdint.h>
 #include <stdbool.h>
 

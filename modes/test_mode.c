@@ -5,10 +5,16 @@
  *  Author: marwa079
  */ 
 #include <stdint.h>
+#include <stdlib.h>
+#include <avr/io.h>
 
 #include "test_mode.h"
 #include "../global_definitions.h"
+#include "../spi.h"
+#include "../SensorModule.h"
+#include <stdbool.h>
 
+extern char UART_data;
 
 char test_send_to_comm(uint8_t val)
 {
@@ -16,13 +22,26 @@ char test_send_to_comm(uint8_t val)
 	
 	ss_to_low(comm_ss_port_);
 	
-	spi_send(0b11100001);
-	spi_send(0b10011111);
-	spi_send(0b11111111);
-	spi_send('B');  //tror det borde gå att skicka char också, testa detta
-	return_mode = spi_send(0b11111111);
+	return_mode = spi_send(val);
 	
 	ss_to_high(comm_ss_port_);
 	
 	return return_mode;
+}
+
+
+
+void test_Laser_max_freq(void)
+{
+	
+	
+	
+	while(max_speed_bool)
+	{
+		
+        PORTB = UART_data;		
+		
+	}
+	
+	
 }
