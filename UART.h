@@ -23,6 +23,8 @@ void Disable_USART_interrupt(void);
 
 void USART_Transmit(uint8_t data);
 
-extern char UART_data;
+void get_LIDAR_16bit_data(void);
+
+extern uint16_t UART_data;
 
 #endif /* UART_H_ */

@@ -11,7 +11,7 @@
 
 
 
-
+extern uint16_t counter_val; 
 
 
 

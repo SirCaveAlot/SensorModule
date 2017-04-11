@@ -23,11 +23,11 @@
 #include "modes/test_mode.h"
 #include "global_definitions.h"
 #include "UART.h"
-//#include "modes/laser_mode.h"
+#include "modes/laser_mode.h"
 
 
 
-
+//extern char UART_data;
 
 uint8_t sensor_values[8];
 
@@ -35,7 +35,7 @@ volatile uint8_t curr_sensor;
 
 bool _gyro_activated = false;
 
-uint8_t value = 0;	
+uint8_t count = 0;	
 
 bool max_speed_bool = true;
 
@@ -82,12 +82,39 @@ void Overall_setup(void)
 //sets up the SPI properly and activates the Gyro.
 ISR(INT0_vect)
 {
+	/*
+	++count;
+	
+	if(count % 3 == 0)
+	{
+		USART_Transmit('L');
+	}
+	else if (count %3 == 1)
+	{
+		USART_Transmit('M');
+	}
+	else if(count%3 == 2)
+	{
+		USART_Transmit('T');
+	}
+	*/
+	if(_gyro_activated)
+	{
+	    TIMSK1 |= (1<<TOIE1);	
+	    _gyro_activated = false;
+	}
+	else
+	{
+		TIMSK1 &= ~(1<<TOIE1);
+		_gyro_activated = true;
+	}
+	
 	
 	//read_single_analog(2);
 	//read_analog_sensors(nr);
 	
 	//test_send_to_comm(0b00011000);
-    max_speed_bool = !max_speed_bool; 
+   /* max_speed_bool = !max_speed_bool; 
 	if(max_speed_bool)
 	{
 		Enable_USART_interrupt();
@@ -96,7 +123,7 @@ ISR(INT0_vect)
 	{
 		Disable_USART_interrupt();
 	}
-	
+	*/
 	
 }
 
@@ -128,7 +155,9 @@ int main(void)
 	
     while(1)
 	{
-	    test_Laser_max_freq();
+        if(UART_data == 0)
+	    PORTB = UART_data;
+		//test_Laser_max_freq();
 	};
 }
 
@@ -199,7 +228,6 @@ void Mode_loop()
 
 }
 
-int count = 0;
 
 
 
