@@ -72,7 +72,7 @@ void Overall_setup(void)
 	_comm_mode = 'T';
 	_steering_mode = 'T';
 	
-	DDRB = 0xFF;
+	//DDRB = 0xFF;
 	
 }
 
@@ -82,39 +82,9 @@ void Overall_setup(void)
 //sets up the SPI properly and activates the Gyro.
 ISR(INT0_vect)
 {
-	/*
-	++count;
-	
-	if(count % 3 == 0)
-	{
-		USART_Transmit('L');
-	}
-	else if (count %3 == 1)
-	{
-		USART_Transmit('M');
-	}
-	else if(count%3 == 2)
-	{
-		USART_Transmit('T');
-	}
-	*/
-	if(_gyro_activated)
-	{
-	    TIMSK1 |= (1<<TOIE1);	
-	    _gyro_activated = false;
-	}
-	else
-	{
-		TIMSK1 &= ~(1<<TOIE1);
-		_gyro_activated = true;
-	}
 	
 	
-	//read_single_analog(2);
-	//read_analog_sensors(nr);
-	
-	//test_send_to_comm(0b00011000);
-   /* max_speed_bool = !max_speed_bool; 
+	   /* max_speed_bool = !max_speed_bool; 
 	if(max_speed_bool)
 	{
 		Enable_USART_interrupt();
@@ -150,14 +120,12 @@ int main(void)
 
 	
 	//DDRB = 0xFF;
-	Enable_USART_interrupt();
 	
+	Setup_timer();
 	
     while(1)
 	{
-        if(UART_data == 0)
-	    PORTB = UART_data;
-		//test_Laser_max_freq();
+         //test_Laser_max_freq();
 	};
 }
 
