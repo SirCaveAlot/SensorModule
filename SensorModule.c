@@ -6,7 +6,7 @@
  */ 
 
 
-#define 	F_CPU   128000UL
+#define 	F_CPU   14745600UL
 
 #include <avr/io.h>
 #include <stdlib.h>
@@ -37,7 +37,7 @@ bool _gyro_activated = false;
 
 uint8_t count = 0;	
 
-bool max_speed_bool = true;
+bool max_speed_bool = false;
 
 //------------------SETUP----------------------------------------------
 //EIMSK sets INT0 as interrupt
@@ -46,7 +46,7 @@ bool max_speed_bool = true;
 void interrupt_setup(void)
 {
 	
-	EIMSK = 1<<INT0;
+	EIMSK = (1<<INT0) | (1<<INT2);
 	EICRA = (1<<ISC01) | (1<<ISC00);
 	ADMUX = (1<<ADLAR);
 	
@@ -56,7 +56,7 @@ void SPI_setup(void)
 {
 	
 	//ss signal to gyro, comm and steering
-	DDRB |= (1<<DDB0) | (1<<DDB1) | (1<<DDB4);
+	DDRB |= (1<<DDB0) | (1<<DDB1) | (1<<DDB4) ;
 
 	//add more values later
 
@@ -72,16 +72,18 @@ void Overall_setup(void)
 	_comm_mode = 'T';
 	_steering_mode = 'T';
 	
-	//DDRB = 0xFF;
+	DDRB |= (1<<DDB3) ;
 	
 }
 
-
+volatile bool speed_bool = false;
 //interrupt vector for the ADC
 
 //sets up the SPI properly and activates the Gyro.
 ISR(INT0_vect)
 {
+	speed_bool = true;
+	
 	
 	
 	   /* max_speed_bool = !max_speed_bool; 
@@ -118,14 +120,32 @@ int main(void)
 	USART_Init(UBBR);
 	DDRD |= (1<<DDD3);
 
-	
+	PORTB = 0;
 	//DDRB = 0xFF;
 	
 	Setup_timer();
+	sei();
 	
-    while(1)
+	while(1)
 	{
-         //test_Laser_max_freq();
+		
+		read_analog_sensors(0b00000011);
+		test_send_to_steering(_analog_sensor_values[0]);
+		_delay_ms(1000);
+		
+		test_send_to_steering(_analog_sensor_values[1]);
+		
+		_delay_ms(1000);
+		
+		/*
+		if(speed_bool)
+		{
+         Laser_speed_mode();
+		 speed_bool = false;
+		 //test_Laser_max_freq();
+		}*/
+		
+		
 	};
 }
 

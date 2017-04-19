@@ -15,10 +15,15 @@
 void Setup_timer(void);
 extern uint16_t counter_val; 
 extern volatile uint16_t tot_overflow;
-extern volatile uint16_t UART_data;
+//extern volatile uint16_t UART_data;
 
 bool Steady_LIDAR_ang_vel(void);
 
 void Activate_or_deactivate_counter(bool activate_count);
+void Laser_speed_mode(void);
+uint16_t Calculate_angle(void);
+
+
+bool get_LIDAR_16bit_data(void);
 
 #endif /* LASER_MODE_H_ */
