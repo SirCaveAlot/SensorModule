@@ -22,7 +22,7 @@ bool Steady_LIDAR_ang_vel(void);
 void Activate_or_deactivate_counter(bool activate_count);
 void Laser_speed_mode(void);
 uint16_t Calculate_angle(void);
-
+uint16_t Single_reading_LIDAR(void);
 
 bool get_LIDAR_16bit_data(void);
 

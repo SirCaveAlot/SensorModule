@@ -20,6 +20,8 @@ void delay_fcn(int clkcycles);
 
 void display_values(uint8_t nr);
 
+void Send_all_values( uint8_t gyro_val, uint16_t LIDAR_val , uint8_t module_choice);
+
 void SPI_setup(void);
 
 

@@ -10,12 +10,16 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <avr/interrupt.h>
+#include <stdbool.h>
 
 static volatile uint8_t curr_sensor;
 
 volatile uint8_t ADread = 0;
 
 volatile uint8_t _analog_sensor_values[8];
+
+bool wheel_color;
+
 
 ISR(ADC_vect){
 	
@@ -89,3 +93,37 @@ void sensor_values_zero(void)
 	}
 	
 }
+
+
+
+
+
+bool Check_color_change(uint8_t wheel_sensor_val , uint8_t black_threshold, uint8_t white_threshold)
+{
+	char curr_color = wheel_color;
+	
+	if(wheel_sensor_val > black_threshold)
+	{
+		//black  color
+		curr_color = 'B';
+		
+	}
+	else if (wheel_sensor_val < white_threshold)
+	{
+		//white color
+		curr_color = 'W';
+		
+	}
+	
+	bool return_bool = (curr_color !=  wheel_color);
+	
+    wheel_color = curr_color;	
+	return return_bool;
+	
+}
+
+
+
+
+
+

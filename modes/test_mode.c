@@ -16,32 +16,19 @@
 
 extern char UART_data;
 
-char test_send_to_comm(uint8_t val)
+char test_spi_send(uint8_t val, uint8_t module_choice)
 {
 	char return_mode;
 	
-	ss_to_low(comm_ss_port_);
+	ss_to_low(module_choice);
 	
 	return_mode = spi_send(val);
 	
-	ss_to_high(comm_ss_port_);
+	ss_to_high(module_choice);
 	
 	return return_mode;
 }
 
-
-char test_send_to_steering(uint8_t val)
-{
-	char return_mode;
-	
-	ss_to_low(steering_ss_port_);
-	
-	return_mode = spi_send(val);
-	
-	ss_to_high(steering_ss_port_);
-	
-	return return_mode;
-}
 
 
 

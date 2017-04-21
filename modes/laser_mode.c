@@ -23,7 +23,7 @@ volatile uint16_t UART_data;
 
 volatile uint16_t last_full_rotate_time = 0;
 volatile uint16_t vector_count = 0;
-volatile bool MSByte = false;
+volatile bool LSByte = false;
 
 
 void Setup_timer(void)
@@ -117,16 +117,16 @@ void Laser_speed_mode(void)
 	while(!Steady_LIDAR_ang_vel()) {};
 	
 	cli();
-	PORTB = (1<<PORTB3);
+	PORTB |= (1<<PORTB3);
 	Enable_USART_interrupt();
 	//change depending on letter
-	USART_Transmit('T');
+	USART_Transmit('L');
 	sei();
 	
 	while(vector_count < 1000);
     
 	cli();
-	USART_Transmit('L');
+	USART_Transmit('D');
 	Disable_USART_interrupt();
 	Activate_or_deactivate_counter(false);
 	
@@ -157,14 +157,14 @@ bool get_LIDAR_16bit_data(void)
 	
 	if(temp_data == 0xFF)
 	{
-		MSByte = false;
+		LSByte = true;
 	}
-	else if((temp_data != 0xFF) && !MSByte)
+	else if((temp_data != 0xFF) && LSByte)
 	{
 		UART_data = temp_data;
-		MSByte = true;
+		LSByte = false;
 	}
-	else if(MSByte)
+	else if(!LSByte)
 	{
 		temp_data = (temp_data << 8);
 		UART_data |= temp_data;
@@ -177,3 +177,16 @@ bool get_LIDAR_16bit_data(void)
 	
 }
 
+
+
+uint16_t Single_reading_LIDAR(void)
+{
+	USART_Transmit('S');
+	uint8_t low_byte = USART_Receive();
+	uint16_t high_byte = USART_Receive();
+	
+	
+	uint16_t return_val = (high_byte << 8) | low_byte;
+	return return_val;
+	
+}

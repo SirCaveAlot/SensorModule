@@ -25,6 +25,6 @@ void USART_Transmit(uint8_t data);
 
 bool get_LIDAR_16bit_data(void);
 
-
+uint8_t USART_Receive( void );
 
 #endif /* UART_H_ */

@@ -46,7 +46,7 @@ bool max_speed_bool = false;
 void interrupt_setup(void)
 {
 	
-	EIMSK = (1<<INT0) | (1<<INT2);
+	EIMSK = (1<<INT0); //| (1<<INT2);
 	EICRA = (1<<ISC01) | (1<<ISC00);
 	ADMUX = (1<<ADLAR);
 	
@@ -56,12 +56,12 @@ void SPI_setup(void)
 {
 	
 	//ss signal to gyro, comm and steering
-	DDRB |= (1<<DDB0) | (1<<DDB1) | (1<<DDB4) ;
+	DDRB |= (1<<DDB0) | (1<<DDB1) | (1<<DDB4);
 
 	//add more values later
 
 	PORTB |= gyro_ss_port_ | comm_ss_port_ | steering_ss_port_;
-	//	Start_gyro();
+	Start_gyro();
 }
 
 
@@ -72,7 +72,7 @@ void Overall_setup(void)
 	_comm_mode = 'T';
 	_steering_mode = 'T';
 	
-	DDRB |= (1<<DDB3) ;
+	//DDRB |= (1<<DDB3) ;
 	
 }
 
@@ -118,9 +118,10 @@ int main(void)
 	
 	SPI_setup();
 	USART_Init(UBBR);
-	DDRD |= (1<<DDD3);
+	DDRD |= (1<<DDD6);
 
-	PORTB = 0;
+	uint8_t gyro_value = 0;
+	uint16_t LIDAR_value = 0;
 	//DDRB = 0xFF;
 	
 	Setup_timer();
@@ -128,15 +129,16 @@ int main(void)
 	
 	while(1)
 	{
+		PORTD |= 1<<PORTD6;
+		read_analog_sensors(0xFF);
+		gyro_value = Get_angular_velocity();
+		LIDAR_value = Single_reading_LIDAR();
 		
-		read_analog_sensors(0b00000011);
-		test_send_to_steering(_analog_sensor_values[0]);
+		Send_all_values(gyro_value, LIDAR_value, comm_ss_port_);
+		
+		PORTD &= ~(1<<PORTD6);
+		
 		_delay_ms(1000);
-		
-		test_send_to_steering(_analog_sensor_values[1]);
-		
-		_delay_ms(1000);
-		
 		/*
 		if(speed_bool)
 		{
@@ -147,6 +149,37 @@ int main(void)
 		
 		
 	};
+}
+
+
+
+void Send_all_values( uint8_t gyro_val, uint16_t LIDAR_val , uint8_t module_choice)
+{
+	for(uint8_t i = 0 ; i < 8 ; ++i)
+	{
+	    test_spi_send(_analog_sensor_values[i], steering_ss_port_);
+		test_spi_send(_analog_sensor_values[i], comm_ss_port_);
+	    _delay_us(100);	
+	}
+	
+	test_spi_send(gyro_val, steering_ss_port_);
+	test_spi_send(gyro_val, comm_ss_port_);
+	
+	 _delay_us(100);
+	 
+	 
+	uint8_t LIDAR_low_byte = (uint8_t) LIDAR_val;
+	uint8_t LIDAR_high_byte = (uint8_t) (LIDAR_val>>8);
+	test_spi_send(LIDAR_high_byte, steering_ss_port_);
+	test_spi_send(LIDAR_high_byte, comm_ss_port_);
+	_delay_us(100);
+	test_spi_send(LIDAR_low_byte, steering_ss_port_);
+	test_spi_send(LIDAR_low_byte, comm_ss_port_);
+	
+	_delay_us(100);
+	test_spi_send(0xFF, steering_ss_port_);
+    test_spi_send(0xFF, comm_ss_port_);
+	
 }
 
 
