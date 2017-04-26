@@ -10,9 +10,6 @@
 #include <stdbool.h>
 #include "UART.h"
 
-uint16_t UART_data;
-
-bool MSByte;
 
 void USART_Init( unsigned int baud )
 {
@@ -49,40 +46,6 @@ void USART_Transmit(uint8_t transmit_data)
 }
 
 
-
-//sets MSByte false if UART receives a 0. 
-//When the next interrupt comes, the MSByte will be set to true.
-
-ISR(USART0_RX_vect)
-{
-	get_LIDAR_16bit_data();
-	
-}
-
-
-
-void get_LIDAR_16bit_data(void)
-{
-	uint16_t temp_data = UDR0;
-	
-	
-	if(temp_data == 0xFF)
-	{
-		MSByte = false;
-	}
-	else if(!MSByte)
-	{
-		UART_data = temp_data;
-		MSByte = true;
-	}
-	else if(MSByte)
-	{
-		temp_data = (temp_data << 8);
-		UART_data |= temp_data;
-		UART_data = (UART_data >> 1);
-	}
-	
-}
 
 
 

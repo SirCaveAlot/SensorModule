@@ -30,6 +30,23 @@ char test_send_to_comm(uint8_t val)
 }
 
 
+char test_send_to_steering(uint8_t val)
+{
+	char return_mode;
+	
+	ss_to_low(steering_ss_port_);
+	
+	return_mode = spi_send(val);
+	
+	ss_to_high(steering_ss_port_);
+	
+	return return_mode;
+}
+
+
+
+
+
 
 void test_Laser_max_freq(void)
 {
