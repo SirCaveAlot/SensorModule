@@ -24,6 +24,7 @@
 #include "global_definitions.h"
 #include "UART.h"
 #include "modes/laser_mode.h"
+#include "modes/drive_mode.h"
 
 
 
@@ -31,13 +32,15 @@
 
 uint8_t sensor_values[8];
 
-volatile uint8_t curr_sensor;
+volatile uint8_t _curr_sensor;
 
-bool _gyro_activated = false;
 
 uint8_t count = 0;	
 
 bool max_speed_bool = false;
+
+char _steering_mode = 'D';
+//char _steering_mode = 'D';
 
 //------------------SETUP----------------------------------------------
 //EIMSK sets INT0 as interrupt
@@ -46,7 +49,7 @@ bool max_speed_bool = false;
 void interrupt_setup(void)
 {
 	
-	EIMSK = (1<<INT0); //| (1<<INT2);
+	EIMSK = (1<<INT0) | (1<<INT1);
 	EICRA = (1<<ISC01) | (1<<ISC00);
 	ADMUX = (1<<ADLAR);
 	
@@ -70,7 +73,7 @@ void Overall_setup(void)
 {
 	
 	_comm_mode = 'T';
-	_steering_mode = 'T';
+	_steering_mode = 'D';
 	
 	//DDRB |= (1<<DDB3) ;
 	
@@ -118,88 +121,58 @@ int main(void)
 	
 	SPI_setup();
 	USART_Init(UBBR);
-	DDRD |= (1<<DDD6);
+	DDRD |=  (1<<DDD4) | (1<<DDD5) | (1<<DDD6) | (1<<DDD7);
 
-	uint8_t gyro_value = 0;
-	uint16_t LIDAR_value = 0;
+	//uint8_t gyro_value = 0;
+	//uint16_t LIDAR_value = 0;
 	//DDRB = 0xFF;
 	
-	Setup_timer();
+	Setup_timer0();
+	Setup_timer2();
 	sei();
 	
+	Mode_loop();
+	/*
 	while(1)
 	{
 		PORTD |= 1<<PORTD6;
-		read_analog_sensors(0xFF);
-		gyro_value = Get_angular_velocity();
-		LIDAR_value = Single_reading_LIDAR();
 		
-		Send_all_values(gyro_value, LIDAR_value, comm_ss_port_);
 		
-		PORTD &= ~(1<<PORTD6);
-		
-		_delay_ms(1000);
-		/*
 		if(speed_bool)
 		{
          Laser_speed_mode();
 		 speed_bool = false;
 		 //test_Laser_max_freq();
-		}*/
+		}
 		
 		
 	};
+	*/
 }
 
 
 
-void Send_all_values( uint8_t gyro_val, uint16_t LIDAR_val , uint8_t module_choice)
-{
-	for(uint8_t i = 0 ; i < 8 ; ++i)
-	{
-	    test_spi_send(_analog_sensor_values[i], steering_ss_port_);
-		test_spi_send(_analog_sensor_values[i], comm_ss_port_);
-	    _delay_us(100);	
-	}
-	
-	test_spi_send(gyro_val, steering_ss_port_);
-	test_spi_send(gyro_val, comm_ss_port_);
-	
-	 _delay_us(100);
-	 
-	 
-	uint8_t LIDAR_low_byte = (uint8_t) LIDAR_val;
-	uint8_t LIDAR_high_byte = (uint8_t) (LIDAR_val>>8);
-	test_spi_send(LIDAR_high_byte, steering_ss_port_);
-	test_spi_send(LIDAR_high_byte, comm_ss_port_);
-	_delay_us(100);
-	test_spi_send(LIDAR_low_byte, steering_ss_port_);
-	test_spi_send(LIDAR_low_byte, comm_ss_port_);
-	
-	_delay_us(100);
-	test_spi_send(0xFF, steering_ss_port_);
-    test_spi_send(0xFF, comm_ss_port_);
-	
-}
 
 
 
-void Mode_loop()
+
+
+void Mode_loop(void)
 {
 
-	//char curr_steering_mode = 'T';
-    _steering_mode = 'T';
+	char curr_steering_mode = _steering_mode;
+    
 
 	while(1)
 	{
                               //change this function
-		if(  manual_mode_ == (PORTD & 0b00001101))
-		{
+		//if(  manual_mode_ == (PORTD & 0b00001101))
+		//{
 			
 			
-		}
-		else
-		{
+		//}
+		//else
+		//{
 			/*
 			if(_steering_mode != curr_steering_mode)
 			{
@@ -213,35 +186,77 @@ void Mode_loop()
 				
 				//drive straight mode
 				case 'D':
-				//  Straight_mode();
+				    Activate_or_deactivate_counter2(true);
+					
+					read_analog_sensors(0x3F);
+					uint8_t gyro_value = Get_angular_velocity();
+					PORTD |= (1<<PORTD6);
+					uint16_t LIDAR_value = Single_reading_LIDAR();
+				    
+					
+					if(Send_all_values(gyro_value, LIDAR_value, comm_ss_port_))
+					{
+						Activate_or_deactivate_counter2(false);
+						break;
+					}
+					
+					
+					//send with frequency of 50 hz
+					while(tot_overflow_send < 18);
+				    Activate_or_deactivate_counter2(false);
+					
 				break;
 				
 				
 				//rotate mode
-				case 'R':
-				//Rotate_mode();
+				case 'L':
+				    PORTD |= (1<<PORTD7);
+					Laser_speed_mode();
+					_delay_ms(100);
+					_steering_mode = 'S';
+					Check_mode_change(curr_steering_mode);
+					//add some function to send all values
 				break;
 				
 				
 				//laser mode
-				case 'L':
-				
+				case 'S':
+				     
+					 
+				    
+				     curr_steering_mode = test_spi_send(0xFF, comm_ss_port_);
+					 Check_mode_change(curr_steering_mode);
+					 test_spi_send(0xFF, steering_ss_port_);
+				     PORTD |= (1<<PORTD5);
+					 
+						 
+					 _delay_ms(100);
 				break;
 				
 				//test mode
-				case 'T':
-				 //  Test_mode();
+				case 'T': 
+				   
+					 
+					 curr_steering_mode = test_spi_send(0xFF, comm_ss_port_);
+					 Check_mode_change(curr_steering_mode);
+					 test_spi_send(0xFF, steering_ss_port_);
+					 PORTD |= (1<<PORTD4);
+					 
+					 _delay_ms(100);
+					
+					
 				break;
 				
 				default:
 				
-				//send 0 with delay
+				    _steering_mode = 'S';
+				
 				break;
 				
 				
 			}
 			
-		}
+		//}
 		
 		
 		
@@ -253,12 +268,91 @@ void Mode_loop()
 
 
 
+bool Check_mode_change(char curr_steering_mode)
+{
+	bool mode_changed = (curr_steering_mode != _steering_mode);
+	
+	 _steering_mode = curr_steering_mode;
+	
+	if(mode_changed)
+	{
+		PORTD &= ~((1<<PORTD4) | (1<<PORTD5) | (1<<PORTD6) | (1<<PORTD7));
+	}
+	
+	return mode_changed;
+	
+}
+
+
+
+bool Send_all_values( uint8_t gyro_val, uint16_t LIDAR_val , uint8_t module_choice)
+{
+	
+
+
+	if(Send_value_both_modules(0x00))
+	{
+		return true;
+	}
+	
+	//------SEND ANALOGS---------------------------------
+	
+	for(uint8_t i = 0 ; i < 6 ; ++i)
+	{
+		
+		if(Send_value_both_modules(_analog_sensor_values[i]))
+		{
+			return true;
+		}
+		
+	}
+	//------SEND GYRO---------------------------------
+	
+	if(Send_value_both_modules(gyro_val))
+	{
+		return true;
+	}
+	
+	//------SEND LIDAR---------------------------------
+	uint8_t LIDAR_low_byte = (uint8_t) LIDAR_val;
+	uint8_t LIDAR_high_byte = (uint8_t) (LIDAR_val>>8);
+	if(Send_value_both_modules(LIDAR_high_byte))
+	{
+		return true;
+	}
+	
+	
+	if(Send_value_both_modules(LIDAR_low_byte))
+	{
+		return true;
+	}
+	
+	//------SEND STOP BYTE---------------------------------
+	if(Send_value_both_modules(0xFF))
+	{
+		return true;
+	}
+	
+	return false;
+}
 
 
 
 
-
-
+bool Send_value_both_modules(uint8_t send_value)
+{
+	char curr_steering_mode = test_spi_send(send_value, comm_ss_port_);
+	if(Check_mode_change(curr_steering_mode))
+	{
+		_delay_us(80);
+		return true;
+	}
+	
+	test_spi_send(send_value, steering_ss_port_);
+	_delay_us(80);
+	
+	return false;
+}
 
 
 

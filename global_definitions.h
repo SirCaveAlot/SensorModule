@@ -14,6 +14,6 @@
 #define steering_ss_port_ 0b00010000
 
 char _comm_mode;
-char _steering_mode;
+
 
 #endif /* GLOBAL_DEFINITIONS_H_ */

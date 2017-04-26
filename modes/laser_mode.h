@@ -12,14 +12,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-void Setup_timer(void);
+void Setup_timer0(void);
 extern uint16_t counter_val; 
 extern volatile uint16_t tot_overflow;
 //extern volatile uint16_t UART_data;
 
 bool Steady_LIDAR_ang_vel(void);
 
-void Activate_or_deactivate_counter(bool activate_count);
+void Activate_or_deactivate_counter0(bool activate_count);
 void Laser_speed_mode(void);
 uint16_t Calculate_angle(void);
 uint16_t Single_reading_LIDAR(void);

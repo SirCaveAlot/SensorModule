@@ -5,6 +5,7 @@
  *  Author: marwa079
  */ 
 
+#include "../SensorModule.h"
 #include "laser_mode.h"
 #include "../UART.h"
 #include <stdint.h>
@@ -16,17 +17,18 @@
 
 volatile uint16_t tot_overflow;
 
+#define vector_max_size 1000
 volatile uint8_t magnet_count = 0; 
-volatile uint16_t distance_vector[1000];
-volatile uint16_t angle_vector[1000];
+volatile uint16_t distance_vector[vector_max_size];
+volatile uint16_t angle_vector[vector_max_size];
 volatile uint16_t UART_data;
 
-volatile uint16_t last_full_rotate_time = 0;
+volatile uint16_t last_half_rotate_time = 0;
 volatile uint16_t vector_count = 0;
 volatile bool LSByte = false;
 
 
-void Setup_timer(void)
+void Setup_timer0(void)
 {
 	//prescaler on /8
 	TCCR0B = (1<<CS01) ;
@@ -49,9 +51,9 @@ ISR(TIMER0_OVF_vect)
 
 //counts every time a magnet activates the interrupt 
 
-ISR(INT2_vect)
+ISR(INT1_vect)
 {
-	last_full_rotate_time = tot_overflow; 
+	last_half_rotate_time = tot_overflow; 
 	++magnet_count;
 	tot_overflow = 0;
 }
@@ -64,9 +66,19 @@ ISR(USART0_RX_vect)
 	
 	if(get_LIDAR_16bit_data())
 	{
-		distance_vector[vector_count] = UART_data;
-		angle_vector[vector_count] = Calculate_angle();
-		++vector_count;
+		if(vector_count >= vector_max_size)
+		{
+			vector_count = 0;
+		}
+		else if(_steering_mode == 'L')
+		{
+		    distance_vector[vector_count] = UART_data;
+		    angle_vector[vector_count] = Calculate_angle();
+		    ++vector_count;	
+		}
+		
+		
+		
 	}
 	
 	
@@ -80,17 +92,18 @@ ISR(USART0_RX_vect)
 uint16_t Calculate_angle(void)
 {
 	//muliply this with any number to get angle
-	return (((double)tot_overflow / last_full_rotate_time) * 1000);
+	return (((double)tot_overflow / last_half_rotate_time) * 1000);
 }
 
 
 
 //activates or deactivates Overflow interrupts for the timer
-void Activate_or_deactivate_counter(bool activate_count)
+void Activate_or_deactivate_counter0(bool activate_count)
 {
 	
 	if(activate_count)
 	{
+		tot_overflow = 0;
 	    TIMSK0 |= (1<<TOIE0);	
 	    
 	}
@@ -110,28 +123,28 @@ void Activate_or_deactivate_counter(bool activate_count)
 void Laser_speed_mode(void)
 {
 	cli();
-	PORTB &= ~(1<<PORTB3);
-    
-	Activate_or_deactivate_counter(true);
+	Activate_or_deactivate_counter0(true);
+	
+	PORTD |= (1<<PORTD6); 
 	sei();
 	while(!Steady_LIDAR_ang_vel()) {};
-	
 	cli();
-	PORTB |= (1<<PORTB3);
+	
 	Enable_USART_interrupt();
-	//change depending on letter
 	USART_Transmit('L');
-	sei();
 	
-	while(vector_count < 1000);
-    
+	sei();
+	PORTD |= (1<<PORTD5);
+	while(vector_count < vector_max_size);
 	cli();
+	
 	USART_Transmit('D');
 	Disable_USART_interrupt();
-	Activate_or_deactivate_counter(false);
-	
+	Activate_or_deactivate_counter0(false);
+	PORTD |= (1<<PORTD4);
 	vector_count = 0;
 	magnet_count = 0;
+	
 	sei();
 }
 
@@ -142,7 +155,7 @@ void Laser_speed_mode(void)
 bool Steady_LIDAR_ang_vel(void)
 {
 	
-	return (magnet_count >= 2);
+	return (magnet_count >= 4);
 	
 }
 
