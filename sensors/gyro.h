@@ -14,7 +14,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define _gyro_ss 0b00000001
+//#define _gyro_ss 0b00000001
 
 bool Activate_gyro(void);
 

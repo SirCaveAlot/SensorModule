@@ -17,7 +17,7 @@
 #include <stdbool.h>
 #include "../spi.h"
 #include "gyro.h"
-
+#include "../global_definitions.h"
 
 
 
@@ -28,11 +28,11 @@ bool Activate_gyro(void)
 
 	uint8_t high_byte = 0;
 
-	ss_to_low(_gyro_ss);
+	ss_to_low(gyro_ss_port_);
 	spi_send(0b10010100);
 	high_byte = spi_send(0);
 	spi_send(0);
-	ss_to_high(_gyro_ss);
+	ss_to_high(gyro_ss_port_);
 	
 	
 	uint8_t shifted = high_byte >> 7;
@@ -48,11 +48,11 @@ bool Activate_gyro(void)
 bool Check_EOC_bit(void)
 {
 	uint8_t high_byte;
-	ss_to_low(_gyro_ss);
+	ss_to_low(gyro_ss_port_);
 	spi_send(0b10001000);
 	high_byte = spi_send(0);
     spi_send(0);
-	ss_to_high(_gyro_ss);
+	ss_to_high(gyro_ss_port_);
 	high_byte = high_byte & (1<<5);
 	return (1 == (high_byte >> 5));
 }
@@ -84,10 +84,10 @@ bool Start_gyro(void)
 void Start_conversion_gyro(void)
 {
 	
-	ss_to_low(_gyro_ss);
+	ss_to_low(gyro_ss_port_);
 	spi_send(0b10010100);
-	spi_send(0);
-	ss_to_high(_gyro_ss);
+	spi_send(0b00000000);
+	ss_to_high(gyro_ss_port_);
 	
 	//check if retrieved high_bit
 	
@@ -101,12 +101,12 @@ uint8_t Read_gyro(void)
 	uint16_t data;
 	do 
 	{
-		ss_to_low(_gyro_ss);
+		ss_to_low(gyro_ss_port_);
 		spi_send(0b10000000);
 		data = spi_send(0);
 		data = data << 8;
 		data |= spi_send(0);
-		ss_to_high(_gyro_ss);
+		ss_to_high(gyro_ss_port_);
 		
 		EOC_high = (1<<13) == ((1 << 13) & data); 
 		

@@ -11,9 +11,9 @@
 
 #define gyro_ss_port_ 0b00000001
 #define comm_ss_port_ 0b00000010
-#define steering_ss_port_ 0b00001000
+#define steering_ss_port_ 0b00010000
 
 char _comm_mode;
-char _steering_mode;
+
 
 #endif /* GLOBAL_DEFINITIONS_H_ */

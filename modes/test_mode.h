@@ -11,8 +11,7 @@
 
 
 
-char test_send_to_comm(uint8_t);
-char test_send_to_steering(uint8_t val);
+char test_spi_send(uint8_t val, uint8_t module_choice);
 
 void test_Laser_max_freq(void);
 
