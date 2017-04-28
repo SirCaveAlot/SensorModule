@@ -24,6 +24,9 @@ void Laser_speed_mode(void);
 uint16_t Calculate_angle(void);
 uint16_t Single_reading_LIDAR(void);
 
+void send_LIDAR_values(uint32_t delay_us);
+void Activate_or_deactivate_hall2(bool act_or_de);
+
 bool get_LIDAR_16bit_data(void);
 
 #endif /* LASER_MODE_H_ */

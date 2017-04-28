@@ -28,7 +28,7 @@ bool Send_value_both_modules(uint8_t send_value);
 
 bool Check_mode_change(char curr_steering_mode);
 
-extern char _steering_mode;
+extern volatile char _steering_mode;
 void Mode_loop(void);
 
 #endif /* SENSOR_MODULE_H_ */

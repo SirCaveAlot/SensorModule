@@ -5,19 +5,24 @@
  *  Author: marwa079
  */ 
 
+
+#define 	F_CPU   14745600UL
+#include "../global_definitions.h"
 #include "../SensorModule.h"
 #include "laser_mode.h"
 #include "../UART.h"
+#include "test_mode.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
 
 
 volatile uint16_t tot_overflow;
 
-#define vector_max_size 1000
+#define vector_max_size 2000
 volatile uint8_t magnet_count = 0; 
 volatile uint16_t distance_vector[vector_max_size];
 volatile uint16_t angle_vector[vector_max_size];
@@ -66,12 +71,17 @@ ISR(USART0_RX_vect)
 	
 	if(get_LIDAR_16bit_data())
 	{
+		
 		if(vector_count >= vector_max_size)
 		{
 			vector_count = 0;
 		}
 		else if(_steering_mode == 'L')
 		{
+			
+	
+		
+		
 		    distance_vector[vector_count] = UART_data;
 		    angle_vector[vector_count] = Calculate_angle();
 		    ++vector_count;	
@@ -125,7 +135,7 @@ void Laser_speed_mode(void)
 	cli();
 	Activate_or_deactivate_counter0(true);
 	
-	PORTD |= (1<<PORTD6); 
+	 
 	sei();
 	while(!Steady_LIDAR_ang_vel()) {};
 	cli();
@@ -134,14 +144,14 @@ void Laser_speed_mode(void)
 	USART_Transmit('L');
 	
 	sei();
-	PORTD |= (1<<PORTD5);
+	PORTD |= (1<<PORTD6);
 	while(vector_count < vector_max_size);
 	cli();
 	
 	USART_Transmit('D');
 	Disable_USART_interrupt();
 	Activate_or_deactivate_counter0(false);
-	PORTD |= (1<<PORTD4);
+	PORTD |= (1<<PORTD5);
 	vector_count = 0;
 	magnet_count = 0;
 	
@@ -202,4 +212,49 @@ uint16_t Single_reading_LIDAR(void)
 	uint16_t return_val = (high_byte << 8) | low_byte;
 	return return_val;
 	
+}
+
+#define send_delay 80
+
+//returns false if something failed
+void send_LIDAR_values(uint32_t delay_us)
+{/*
+	test_spi_send(0xFF, comm_ss_port_);
+	_delay_us(send_delay);
+	test_spi_send(0xFF, comm_ss_port_);
+	_delay_us(send_delay);
+	*/
+	for(uint16_t i = 0 ; i < vector_max_size ; ++i)
+	{  //                           skiftad åt fel håll
+		test_spi_send((distance_vector[i]>>8), comm_ss_port_);
+		_delay_us(send_delay);
+		test_spi_send(distance_vector[i], comm_ss_port_);
+		_delay_us(send_delay);
+		
+		test_spi_send((angle_vector[i]>>8), comm_ss_port_);
+		_delay_us(send_delay);
+		test_spi_send((angle_vector[i]), comm_ss_port_);
+		_delay_us(send_delay);
+	    
+		test_spi_send(0xFF, comm_ss_port_);
+	    _delay_us(send_delay);
+	    test_spi_send(0xFF, comm_ss_port_);
+	    _delay_us(send_delay);	
+	}
+	
+	
+}
+
+
+
+void Activate_or_deactivate_hall2(bool act_or_de)
+{
+	if(act_or_de)
+	{
+		EIMSK |= (1<<INT0);
+	}
+	else
+	{
+		EIMSK &= ~(1<<INT0);
+	}
 }

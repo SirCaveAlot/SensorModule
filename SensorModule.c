@@ -34,12 +34,12 @@ uint8_t sensor_values[8];
 
 volatile uint8_t _curr_sensor;
 
-
+volatile bool LIDAR_straight = false;
 uint8_t count = 0;	
 
 bool max_speed_bool = false;
 
-char _steering_mode = 'D';
+volatile char _steering_mode = 'D';
 //char _steering_mode = 'D';
 
 //------------------SETUP----------------------------------------------
@@ -49,8 +49,8 @@ char _steering_mode = 'D';
 void interrupt_setup(void)
 {
 	
-	EIMSK = (1<<INT0) | (1<<INT1);
-	EICRA = (1<<ISC01) | (1<<ISC00);
+	EIMSK = (1<<INT1);
+	EICRA = (1<<ISC01) | (1<<ISC00) | (1<<ISC11);
 	ADMUX = (1<<ADLAR);
 	
 }
@@ -85,20 +85,11 @@ volatile bool speed_bool = false;
 //sets up the SPI properly and activates the Gyro.
 ISR(INT0_vect)
 {
-	speed_bool = true;
+	
+	LIDAR_straight = true;
 	
 	
 	
-	   /* max_speed_bool = !max_speed_bool; 
-	if(max_speed_bool)
-	{
-		Enable_USART_interrupt();
-	}
-	else
-	{
-		Disable_USART_interrupt();
-	}
-	*/
 	
 }
 
@@ -212,8 +203,15 @@ void Mode_loop(void)
 				case 'L':
 				    PORTD |= (1<<PORTD7);
 					Laser_speed_mode();
-					_delay_ms(100);
-					_steering_mode = 'S';
+					
+					test_spi_send(0xFF, steering_ss_port_);
+					send_LIDAR_values(80);
+	//				Activate_or_deactivate_hall2(true);
+	//				while(!LIDAR_straight);
+	//				Activate_or_deactivate_hall2(false);
+					LIDAR_straight = false;
+					PORTD &= ~((1<<PORTD4) | (1<<PORTD5) | (1<<PORTD6) | (1<<PORTD7));
+					curr_steering_mode = test_spi_send(0x00, comm_ss_port_);
 					Check_mode_change(curr_steering_mode);
 					//add some function to send all values
 				break;
@@ -224,7 +222,7 @@ void Mode_loop(void)
 				     
 					 
 				    
-				     curr_steering_mode = test_spi_send(0xFF, comm_ss_port_);
+				     curr_steering_mode = test_spi_send(0x00, comm_ss_port_);
 					 Check_mode_change(curr_steering_mode);
 					 test_spi_send(0xFF, steering_ss_port_);
 				     PORTD |= (1<<PORTD5);
@@ -236,20 +234,17 @@ void Mode_loop(void)
 				//test mode
 				case 'T': 
 				   
-					 
-					 curr_steering_mode = test_spi_send(0xFF, comm_ss_port_);
-					 Check_mode_change(curr_steering_mode);
-					 test_spi_send(0xFF, steering_ss_port_);
-					 PORTD |= (1<<PORTD4);
-					 
-					 _delay_ms(100);
+					 Send_0_to_9();
 					
 					
 				break;
 				
 				default:
 				
-				    _steering_mode = 'S';
+				
+				    PORTD &= ~((1<<PORTD4) | (1<<PORTD5) | (1<<PORTD6) | (1<<PORTD7));
+				    curr_steering_mode = test_spi_send(0x00, comm_ss_port_);
+					Check_mode_change(curr_steering_mode);
 				
 				break;
 				
@@ -289,8 +284,13 @@ bool Send_all_values( uint8_t gyro_val, uint16_t LIDAR_val , uint8_t module_choi
 {
 	
 
+    if(Send_value_both_modules(0xFF))
+    {
+	    return true;
+    }
 
-	if(Send_value_both_modules(0x00))
+    
+	if(Send_value_both_modules(0xFF))
 	{
 		return true;
 	}
@@ -328,10 +328,10 @@ bool Send_all_values( uint8_t gyro_val, uint16_t LIDAR_val , uint8_t module_choi
 	}
 	
 	//------SEND STOP BYTE---------------------------------
-	if(Send_value_both_modules(0xFF))
+	/*if(Send_value_both_modules(0xFF))
 	{
 		return true;
-	}
+	}*/
 	
 	return false;
 }

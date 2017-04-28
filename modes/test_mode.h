@@ -14,6 +14,6 @@
 char test_spi_send(uint8_t val, uint8_t module_choice);
 
 void test_Laser_max_freq(void);
-
+void Send_0_to_9(void);
 
 #endif /* TEST_MODE_H_ */
