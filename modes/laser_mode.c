@@ -12,6 +12,9 @@
 #include "laser_mode.h"
 #include "../UART.h"
 #include "test_mode.h"
+#include "../delay.h"
+#include "drive_mode.h"
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -27,6 +30,7 @@ volatile uint8_t magnet_count = 0;
 volatile uint16_t distance_vector[vector_max_size];
 volatile uint16_t angle_vector[vector_max_size];
 volatile uint16_t UART_data;
+volatile uint16_t LIDAR_distance;
 
 volatile uint16_t last_half_rotate_time = 0;
 volatile uint16_t vector_count = 0;
@@ -78,16 +82,15 @@ ISR(USART0_RX_vect)
 		}
 		else if(_steering_mode == 'L')
 		{
-			
-	
-		
-		
 		    distance_vector[vector_count] = UART_data;
 		    angle_vector[vector_count] = Calculate_angle();
 		    ++vector_count;	
 		}
-		
-		
+		else if (_steering_mode == 'D')
+		{
+			LIDAR_distance = UART_data;
+			
+		}
 		
 	}
 	
@@ -129,12 +132,12 @@ void Activate_or_deactivate_counter0(bool activate_count)
 
 
 
-
+//reads the LIDAR vector_max_size times. Is used when LIDAR is rotating.
 void Laser_speed_mode(void)
 {
 	cli();
 	Activate_or_deactivate_counter0(true);
-	
+	magnet_count = 0;
 	 
 	sei();
 	while(!Steady_LIDAR_ang_vel()) {};
@@ -201,7 +204,7 @@ bool get_LIDAR_16bit_data(void)
 }
 
 
-
+//currently not used
 uint16_t Single_reading_LIDAR(void)
 {
 	USART_Transmit('S');
@@ -214,35 +217,39 @@ uint16_t Single_reading_LIDAR(void)
 	
 }
 
-#define send_delay 80
+#define send_delay 200
 
 //returns false if something failed
 void send_LIDAR_values(uint32_t delay_us)
-{/*
-	test_spi_send(0xFF, comm_ss_port_);
-	_delay_us(send_delay);
-	test_spi_send(0xFF, comm_ss_port_);
-	_delay_us(send_delay);
-	*/
+{
+	uint8_t delay_time = 100;
 	for(uint16_t i = 0 ; i < vector_max_size ; ++i)
-	{  //                           skiftad åt fel håll
+	{  
+		test_spi_send(0xFF, comm_ss_port_);
+		delay(delay_time);
+		test_spi_send(0xFF, comm_ss_port_);
+		delay(delay_time);
+		
+		
 		test_spi_send((distance_vector[i]>>8), comm_ss_port_);
-		_delay_us(send_delay);
+		delay(delay_time);
 		test_spi_send(distance_vector[i], comm_ss_port_);
-		_delay_us(send_delay);
+		delay(delay_time);
 		
 		test_spi_send((angle_vector[i]>>8), comm_ss_port_);
-		_delay_us(send_delay);
+		delay(delay_time);
 		test_spi_send((angle_vector[i]), comm_ss_port_);
-		_delay_us(send_delay);
+		delay(delay_time);
 	    
-		test_spi_send(0xFF, comm_ss_port_);
-	    _delay_us(send_delay);
-	    test_spi_send(0xFF, comm_ss_port_);
-	    _delay_us(send_delay);	
+	
 	}
 	
-	
+
+	test_spi_send(0x00, comm_ss_port_);
+	delay(delay_time);
+	test_spi_send(0x00, comm_ss_port_);
+	delay(delay_time);
+
 }
 
 
@@ -257,4 +264,26 @@ void Activate_or_deactivate_hall2(bool act_or_de)
 	{
 		EIMSK &= ~(1<<INT0);
 	}
+}
+
+
+
+
+
+void LIDAR_mode(void)
+{
+	 PORTD |= (1<<PORTD7);
+	 Laser_speed_mode();
+	 
+	 test_spi_send(0xFF, steering_ss_port_);
+	 send_LIDAR_values(80);
+	 //Activate_or_deactivate_hall2(true);
+	 //while(!LIDAR_straight);
+	 //Activate_or_deactivate_hall2(false);
+	 //LIDAR_straight = false;
+	 PORTD &= ~((1<<PORTD4) | (1<<PORTD5) | (1<<PORTD6) | (1<<PORTD7));
+	 uint8_t curr_steering_mode = test_spi_send(0x00, comm_ss_port_);
+	 
+	 Check_mode_change(curr_steering_mode);
+	 
 }

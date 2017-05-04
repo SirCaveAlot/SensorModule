@@ -20,13 +20,13 @@ void delay_fcn(int clkcycles);
 
 void display_values(uint8_t nr);
 
-bool Send_all_values( uint8_t gyro_val, uint16_t LIDAR_val , uint8_t module_choice);
+
 
 void SPI_setup(void);
 
 bool Send_value_both_modules(uint8_t send_value);
 
-bool Check_mode_change(char curr_steering_mode);
+
 
 extern volatile char _steering_mode;
 void Mode_loop(void);

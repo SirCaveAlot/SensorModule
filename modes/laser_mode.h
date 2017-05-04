@@ -16,6 +16,7 @@ void Setup_timer0(void);
 extern uint16_t counter_val; 
 extern volatile uint16_t tot_overflow;
 //extern volatile uint16_t UART_data;
+extern volatile uint16_t LIDAR_distance;
 
 bool Steady_LIDAR_ang_vel(void);
 
@@ -28,5 +29,6 @@ void send_LIDAR_values(uint32_t delay_us);
 void Activate_or_deactivate_hall2(bool act_or_de);
 
 bool get_LIDAR_16bit_data(void);
+void LIDAR_mode(void);
 
 #endif /* LASER_MODE_H_ */

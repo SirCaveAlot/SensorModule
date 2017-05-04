@@ -30,7 +30,7 @@ char test_spi_send(uint8_t val, uint8_t module_choice)
 	return return_mode;
 }
 
-
+/*
 void Send_0_to_9(void)
 {
 	test_spi_send(0x00, comm_ss_port_);
@@ -60,7 +60,7 @@ void Send_0_to_9(void)
 	_delay_ms(100);
 
 }
-
+*/
 
 
 

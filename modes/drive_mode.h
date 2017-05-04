@@ -9,10 +9,10 @@
 #ifndef DRIVE_MODE_H_
 #define DRIVE_MODE_H_
 
-extern volatile uint8_t tot_overflow_send;
 
-void Setup_timer2(void);
+void Drive_mode(void);
 
-void Activate_or_deactivate_counter2(bool activate_count);
+bool Send_all_values( uint8_t gyro_val, uint16_t LIDAR_val , uint8_t module_choice);
 
+bool Check_mode_change(char curr_steering_mode);
 #endif /* DRIVE_MODE_H_ */
