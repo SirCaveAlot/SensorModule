@@ -18,7 +18,9 @@
 #include "../sensors/gyro.h"
 #include "../SensorModule.h"
 #include "../modes/laser_mode.h"
+#include "test_mode.h"
 #include "../UART.h"
+#include "drive_mode.h"
 
 
 
@@ -73,7 +75,7 @@ bool Send_all_values( uint8_t gyro_val, uint16_t LIDAR_val , uint8_t module_choi
 		
 	}
 	
-	if(Check_color_change(_analog_sensor_values[4], 200 , 100, false))
+	if(Check_color_change(_analog_sensor_values[4], 220 , 100, false))
 	{
 		++rightwheel_changed;
 	}
@@ -85,12 +87,12 @@ bool Send_all_values( uint8_t gyro_val, uint16_t LIDAR_val , uint8_t module_choi
 	rightwheel_changed = 0;
 	
 	
-	if(Check_color_change(_analog_sensor_values[5], 200 , 100, true))
+	if(Check_color_change(_analog_sensor_values[5], 220 , 100, true))
 	{
 		++leftwheel_changed;
 	}
 	
-	if(Send_value_both_modules(_analog_sensor_values[5]))
+	if(Send_value_both_modules(leftwheel_changed))
 	{
 		return true;
 	}
@@ -154,3 +156,24 @@ void Drive_mode(void)
 	PORTD &= ~(1<<PORTD6);
 	
 }
+
+
+
+bool Send_value_both_modules(uint8_t send_value)
+{
+	
+	char curr_steering_mode = spi_send_to_module(send_value, comm_ss_port_);
+	if(Check_mode_change(curr_steering_mode))
+	{
+		delay(40);
+		return true;
+	}
+	
+	
+	spi_send_to_module(send_value, steering_ss_port_);
+	delay(40);
+	
+	return false;
+}
+
+

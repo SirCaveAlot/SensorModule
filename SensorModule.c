@@ -38,10 +38,9 @@ volatile uint8_t _curr_sensor;
 volatile bool LIDAR_straight = false;
 uint8_t count = 0;	
 
-bool max_speed_bool = false;
 
 volatile char _steering_mode = 'D';
-//char _steering_mode = 'D';
+
 
 //------------------SETUP----------------------------------------------
 //EIMSK sets INT0 as interrupt
@@ -154,9 +153,9 @@ void Mode_loop(void)
 				case 'S':
 				     
 					 delay_100_ms();
-				     curr_steering_mode = test_spi_send(0x00, comm_ss_port_);
+				     curr_steering_mode = spi_send_to_module(0x00, comm_ss_port_);
 					 Check_mode_change(curr_steering_mode);
-					 test_spi_send(0x00, steering_ss_port_);
+					 spi_send_to_module(0x00, steering_ss_port_);
 				     PORTD |= (1<<PORTD5);
 					 
 					 
@@ -166,7 +165,7 @@ void Mode_loop(void)
 				case 'T': 
 				     delay_100_ms();
 					 PORTD |= (1<<PORTD7);
-					 curr_steering_mode = test_spi_send(0x00, comm_ss_port_);
+					 curr_steering_mode = spi_send_to_module(0x00, comm_ss_port_);
 					 Check_mode_change(curr_steering_mode);
 					 
 					
@@ -176,14 +175,13 @@ void Mode_loop(void)
 				
 				    delay_100_ms();
 				    PORTD &= ~((1<<PORTD4) | (1<<PORTD5) | (1<<PORTD6) | (1<<PORTD7));
-				    curr_steering_mode = test_spi_send(0x00, comm_ss_port_);
+				    curr_steering_mode = spi_send_to_module(0x00, comm_ss_port_);
 					Check_mode_change(curr_steering_mode);
 				    
 				break;
 				
 				
 			}
-		
 	}
 
 }
@@ -193,24 +191,6 @@ void Mode_loop(void)
 
 
 
-
-
-bool Send_value_both_modules(uint8_t send_value)
-{
-	
-	char curr_steering_mode = test_spi_send(send_value, comm_ss_port_);
-	if(Check_mode_change(curr_steering_mode))
-	{
-		delay(80);
-		return true;
-	}
-	
-	
-	test_spi_send(send_value, steering_ss_port_);
-	delay(80);
-	
-	return false;
-}
 
 
 

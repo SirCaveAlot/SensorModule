@@ -9,7 +9,7 @@
 
 void interrupt_setup(void);
 
-extern bool max_speed_bool;
+
 //void read_analog_sensors(uint8_t nr_of_sensors);
 
 void delay_fcn(int clkcycles);
@@ -24,7 +24,7 @@ void display_values(uint8_t nr);
 
 void SPI_setup(void);
 
-bool Send_value_both_modules(uint8_t send_value);
+
 
 
 

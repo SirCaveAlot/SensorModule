@@ -17,7 +17,7 @@
 
 extern char UART_data;
 
-char test_spi_send(uint8_t val, uint8_t module_choice)
+char spi_send_to_module(uint8_t val, uint8_t module_choice)
 {
 	char return_mode;
 	
@@ -63,18 +63,3 @@ void Send_0_to_9(void)
 */
 
 
-
-void test_Laser_max_freq(void)
-{
-	
-	
-	
-	while(max_speed_bool)
-	{
-		
-        PORTB = UART_data;		
-		
-	}
-	
-	
-}

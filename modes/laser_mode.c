@@ -217,38 +217,38 @@ uint16_t Single_reading_LIDAR(void)
 	
 }
 
-#define send_delay 200
+
 
 //returns false if something failed
-void send_LIDAR_values(uint32_t delay_us)
+void send_LIDAR_values(uint8_t delay_us)
 {
-	uint8_t delay_time = 100;
+	
 	for(uint16_t i = 0 ; i < vector_max_size ; ++i)
 	{  
-		test_spi_send(0xFF, comm_ss_port_);
-		delay(delay_time);
-		test_spi_send(0xFF, comm_ss_port_);
-		delay(delay_time);
+		spi_send_to_module(0xFF, comm_ss_port_);
+		delay(delay_us);
+		spi_send_to_module(0xFF, comm_ss_port_);
+		delay(delay_us);
 		
 		
-		test_spi_send((distance_vector[i]>>8), comm_ss_port_);
-		delay(delay_time);
-		test_spi_send(distance_vector[i], comm_ss_port_);
-		delay(delay_time);
+		spi_send_to_module((distance_vector[i]>>8), comm_ss_port_);
+		delay(delay_us);
+		spi_send_to_module(distance_vector[i], comm_ss_port_);
+		delay(delay_us);
 		
-		test_spi_send((angle_vector[i]>>8), comm_ss_port_);
-		delay(delay_time);
-		test_spi_send((angle_vector[i]), comm_ss_port_);
-		delay(delay_time);
+		spi_send_to_module((angle_vector[i]>>8), comm_ss_port_);
+		delay(delay_us);
+		spi_send_to_module((angle_vector[i]), comm_ss_port_);
+		delay(delay_us);
 	    
 	
 	}
 	
 
-	test_spi_send(0x00, comm_ss_port_);
-	delay(delay_time);
-	test_spi_send(0x00, comm_ss_port_);
-	delay(delay_time);
+	spi_send_to_module(0x00, comm_ss_port_);
+	delay(delay_us);
+	spi_send_to_module(0x00, comm_ss_port_);
+	delay(delay_us);
 
 }
 
@@ -275,14 +275,14 @@ void LIDAR_mode(void)
 	 PORTD |= (1<<PORTD7);
 	 Laser_speed_mode();
 	 
-	 test_spi_send(0xFF, steering_ss_port_);
-	 send_LIDAR_values(80);
+	 spi_send_to_module(0xFF, steering_ss_port_);
+	 send_LIDAR_values(50);
 	 //Activate_or_deactivate_hall2(true);
 	 //while(!LIDAR_straight);
 	 //Activate_or_deactivate_hall2(false);
 	 //LIDAR_straight = false;
 	 PORTD &= ~((1<<PORTD4) | (1<<PORTD5) | (1<<PORTD6) | (1<<PORTD7));
-	 uint8_t curr_steering_mode = test_spi_send(0x00, comm_ss_port_);
+	 uint8_t curr_steering_mode = spi_send_to_module(0x00, comm_ss_port_);
 	 
 	 Check_mode_change(curr_steering_mode);
 	 

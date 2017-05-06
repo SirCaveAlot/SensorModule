@@ -13,7 +13,7 @@ void Setup_timer2(void);
 
 void Activate_or_deactivate_counter2(bool activate_count);
 
-void delay(uint32_t u_seconds);
+void delay(uint16_t u_seconds);
 
 extern volatile uint8_t tot_overflow_send;
 

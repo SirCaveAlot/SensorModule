@@ -49,12 +49,11 @@ void Activate_or_deactivate_counter2(bool activate_count)
 
 //works to maximum of 4.34us*256 = 1111 us = 1.111 ms
 //max input 1111
-void delay(uint8_t u_seconds)
+void delay(uint16_t u_seconds)
 {
 	
-	uint32_t selected_counter = (u_seconds / 4.34);
+	uint8_t selected_counter = (u_seconds / 4.34);
 	Activate_or_deactivate_counter2(true);
-	sei();
 	while( TCNT2 <= selected_counter); //&& ((uint16_t)(u_seconds / 255) <= tot_overflow_send)));
 	Activate_or_deactivate_counter2(false);
 	
@@ -67,6 +66,6 @@ void delay_100_ms(void)
 {
 	for(uint8_t i = 0 ; i < 100 ; ++i)
 	{
-		delay( 1000);
+		delay(1000);
 	}
 }
