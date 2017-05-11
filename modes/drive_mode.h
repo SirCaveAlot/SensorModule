@@ -12,7 +12,7 @@
 
 void Drive_mode(void);
 
-bool Send_all_values( uint8_t gyro_val, uint16_t LIDAR_val , uint8_t module_choice);
+bool Send_all_values( uint16_t gyro_val, uint16_t LIDAR_val , uint8_t module_choice);
 
 bool Check_mode_change(char curr_steering_mode);
 

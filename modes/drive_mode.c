@@ -48,7 +48,7 @@ bool Check_mode_change(char curr_steering_mode)
 
 //Sends all values to both modules and returns true if mode has changed during the send
 //
-bool Send_all_values( uint8_t gyro_val, uint16_t LIDAR_val , uint8_t module_choice)
+bool Send_all_values( uint16_t gyro_val, uint16_t LIDAR_val , uint8_t module_choice)
 {
 	
     //------SEND STARTBYTES-------------------------------
@@ -100,7 +100,13 @@ bool Send_all_values( uint8_t gyro_val, uint16_t LIDAR_val , uint8_t module_choi
 	
 	//------SEND GYRO---------------------------------
 	
-	if(Send_value_both_modules(gyro_val))
+	if(Send_value_both_modules((uint8_t)(gyro_val>>8)))
+	{
+		return true;
+	}
+	
+	
+	if(Send_value_both_modules((uint8_t)gyro_val))
 	{
 		return true;
 	}
@@ -131,7 +137,7 @@ void Drive_mode(void)
 	Activate_or_deactivate_counter2(true);
 	
 	read_analog_sensors(0x3F);
-	uint8_t gyro_value = Get_angular_velocity();
+	uint16_t gyro_value = Get_angular_velocity();
 	Enable_USART_interrupt();
 	
 	bool left_wheel = true;
@@ -151,8 +157,6 @@ void Drive_mode(void)
 	Send_all_values(gyro_value, LIDAR_distance, comm_ss_port_);
 	
 		
-	
-	
 	PORTD &= ~(1<<PORTD6);
 	
 }

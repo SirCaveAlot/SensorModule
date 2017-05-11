@@ -6,13 +6,13 @@
  */ 
 
 
-#define 	F_CPU   14745600UL
+
 
 #include <avr/io.h>
 #include <stdlib.h>
 #include <avr/interrupt.h>
 #include <stdint.h>
-#include <util/delay.h>
+
 #include <math.h>
 #include <stdbool.h>
 
@@ -35,8 +35,7 @@ uint8_t sensor_values[8];
 
 volatile uint8_t _curr_sensor;
 
-volatile bool LIDAR_straight = false;
-uint8_t count = 0;	
+//volatile bool LIDAR_straight = false;
 
 
 volatile char _steering_mode = 'D';
@@ -86,7 +85,7 @@ volatile bool speed_bool = false;
 ISR(INT0_vect)
 {
 	
-	LIDAR_straight = true;
+	//LIDAR_straight = true;
 	
 	
 	

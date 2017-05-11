@@ -21,6 +21,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
+#include <math.h>
 
 
 volatile uint16_t tot_overflow;
@@ -29,12 +30,17 @@ volatile uint16_t tot_overflow;
 volatile uint8_t magnet_count = 0; 
 volatile uint16_t distance_vector[vector_max_size];
 volatile uint16_t angle_vector[vector_max_size];
-volatile uint16_t UART_data;
+volatile uint16_t distance_data;
+volatile uint16_t angle_data;
+
+
+
 volatile uint16_t LIDAR_distance;
 
-volatile uint16_t last_half_rotate_time = 0;
+volatile uint16_t last_full_rotate_time = 0;
 volatile uint16_t vector_count = 0;
 volatile bool LSByte = false;
+//volatile uint8_t LIDAR_half = 0;
 
 
 void Setup_timer0(void)
@@ -59,11 +65,13 @@ ISR(TIMER0_OVF_vect)
 }
 
 //counts every time a magnet activates the interrupt 
-
+//can use the same variable for both magnet count and LIDAR_half
 ISR(INT1_vect)
 {
-	last_half_rotate_time = tot_overflow; 
+	last_full_rotate_time = tot_overflow; 
+	
 	++magnet_count;
+	
 	tot_overflow = 0;
 }
 
@@ -82,13 +90,15 @@ ISR(USART0_RX_vect)
 		}
 		else if(_steering_mode == 'L')
 		{
-		    distance_vector[vector_count] = UART_data;
-		    angle_vector[vector_count] = Calculate_angle();
-		    ++vector_count;	
+			
+		    distance_vector[vector_count] = distance_data;
+		    angle_vector[vector_count] = angle_data;//Calculate_angle();
+		   
+			++vector_count;	
 		}
 		else if (_steering_mode == 'D')
 		{
-			LIDAR_distance = UART_data;
+			LIDAR_distance = distance_data;
 			
 		}
 		
@@ -105,7 +115,7 @@ ISR(USART0_RX_vect)
 uint16_t Calculate_angle(void)
 {
 	//muliply this with any number to get angle
-	return (((double)tot_overflow / last_half_rotate_time) * 1000);
+	return (tot_overflow / last_full_rotate_time) * 1000;  //+ LIDAR_half
 }
 
 
@@ -135,25 +145,35 @@ void Activate_or_deactivate_counter0(bool activate_count)
 //reads the LIDAR vector_max_size times. Is used when LIDAR is rotating.
 void Laser_speed_mode(void)
 {
-	cli();
-	Activate_or_deactivate_counter0(true);
+	//Disable_USART_interrupt();
+	//cli();
+	//Activate_or_deactivate_counter0(true);
 	magnet_count = 0;
-	 
+	vector_count = 0;
 	sei();
-	while(!Steady_LIDAR_ang_vel()) {};
-	cli();
+	//while(!Steady_LIDAR_ang_vel()) {};
+	//cli();
 	
 	Enable_USART_interrupt();
 	USART_Transmit('L');
 	
-	sei();
+	//sei();
+	//while (PORTD);
+    //LIDAR_half = 0;
 	PORTD |= (1<<PORTD6);
+	
 	while(vector_count < vector_max_size);
+	   //outer hall sensor
+		//if (LIDAR_half == 1 && PORTD)
+		//{
+		//	LIDAR_half = 0;
+		//}
+	
 	cli();
 	
 	USART_Transmit('D');
 	Disable_USART_interrupt();
-	Activate_or_deactivate_counter0(false);
+	//Activate_or_deactivate_counter0(false);
 	PORTD |= (1<<PORTD5);
 	vector_count = 0;
 	magnet_count = 0;
@@ -172,7 +192,7 @@ bool Steady_LIDAR_ang_vel(void)
 	
 }
 
-
+volatile uint8_t data_counter;
 //sets MSByte false if UART receives a 0.
 //When the next interrupt comes, the MSByte will be set to true.
 bool get_LIDAR_16bit_data(void)
@@ -181,23 +201,36 @@ bool get_LIDAR_16bit_data(void)
 	
 	bool temp_bool = false;
 	
-	if(temp_data == 0xFF)
+	if(temp_data == 0xFF && data_counter == 0)
 	{
-		LSByte = true;
+		data_counter = 1;
+		
 	}
-	else if((temp_data != 0xFF) && LSByte)
+	else if(data_counter == 1)
 	{
-		UART_data = temp_data;
-		LSByte = false;
+		data_counter = 2;
+		distance_data = temp_data;
+		
 	}
-	else if(!LSByte)
+	else if(data_counter == 2)
 	{
+		data_counter = 3;
 		temp_data = (temp_data << 8);
-		UART_data |= temp_data;
-		UART_data = (UART_data >> 1);
-	    temp_bool = true;
+		distance_data |= temp_data;
+		distance_data = (distance_data >> 1);
+	    
 	}
-	
+	else if(data_counter == 3)
+	{
+		angle_data = temp_data;
+		data_counter = 4;
+	}
+	else if(data_counter == 4)
+	{  
+		angle_data |= (temp_data << 8);
+		data_counter = 0;
+		temp_bool = true;
+	}
 	return temp_bool;
 	//maybe transmit further or do something with the data
 	
@@ -226,29 +259,29 @@ void send_LIDAR_values(uint8_t delay_us)
 	for(uint16_t i = 0 ; i < vector_max_size ; ++i)
 	{  
 		spi_send_to_module(0xFF, comm_ss_port_);
-		delay(delay_us);
+		_delay_us(300);//delay(delay_us);
 		spi_send_to_module(0xFF, comm_ss_port_);
-		delay(delay_us);
+		_delay_us(300);//delay(delay_us);
 		
 		
 		spi_send_to_module((distance_vector[i]>>8), comm_ss_port_);
-		delay(delay_us);
+		_delay_us(300);//delay(delay_us);
 		spi_send_to_module(distance_vector[i], comm_ss_port_);
-		delay(delay_us);
+		_delay_us(300);//delay(delay_us);
 		
 		spi_send_to_module((angle_vector[i]>>8), comm_ss_port_);
-		delay(delay_us);
+		_delay_us(300);//delay(delay_us);
 		spi_send_to_module((angle_vector[i]), comm_ss_port_);
-		delay(delay_us);
+		_delay_us(300);//delay(delay_us);
 	    
 	
 	}
 	
 
 	spi_send_to_module(0x00, comm_ss_port_);
-	delay(delay_us);
+	_delay_us(300);//delay(delay_us);
 	spi_send_to_module(0x00, comm_ss_port_);
-	delay(delay_us);
+	_delay_us(300);//delay(delay_us);
 
 }
 
@@ -275,7 +308,7 @@ void LIDAR_mode(void)
 	 PORTD |= (1<<PORTD7);
 	 Laser_speed_mode();
 	 
-	 spi_send_to_module(0xFF, steering_ss_port_);
+	// spi_send_to_module(0xFF, steering_ss_port_);
 	 send_LIDAR_values(50);
 	 //Activate_or_deactivate_hall2(true);
 	 //while(!LIDAR_straight);
@@ -283,7 +316,7 @@ void LIDAR_mode(void)
 	 //LIDAR_straight = false;
 	 PORTD &= ~((1<<PORTD4) | (1<<PORTD5) | (1<<PORTD6) | (1<<PORTD7));
 	 uint8_t curr_steering_mode = spi_send_to_module(0x00, comm_ss_port_);
-	 
+	 delay(200);
 	 Check_mode_change(curr_steering_mode);
 	 
 }

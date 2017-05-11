@@ -20,13 +20,13 @@ bool Activate_gyro(void);
 
 bool Check_EOC_bit(void);
 
-uint8_t Read_gyro(void);
+uint16_t Read_gyro(void);
 
 void Start_conversion_gyro(void);
 
 bool Start_gyro(void);
 
-uint8_t Get_angular_velocity(void);
+uint16_t Get_angular_velocity(void);
 
 
 #endif /* GYRO_H_ */

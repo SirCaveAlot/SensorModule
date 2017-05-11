@@ -15,7 +15,7 @@
 #include <stdbool.h>
 #include <util/delay.h>
 
-extern char UART_data;
+extern char distance_data;
 
 char spi_send_to_module(uint8_t val, uint8_t module_choice)
 {

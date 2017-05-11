@@ -95,7 +95,7 @@ void Start_conversion_gyro(void)
 
 //Reads Gyro until data is receieved (EOC is high).
 //Returns the AD converted value in 8 bits.
-uint8_t Read_gyro(void)
+uint16_t Read_gyro(void)
 {
 	bool EOC_high = false;
 	uint16_t data;
@@ -115,14 +115,14 @@ uint8_t Read_gyro(void)
 	data = (data & 0x0FFE);
 	
 	//change to 8 bit
-	return (uint8_t)(data >> 4);
+	return (data >> 1);
 	
 }
 
 
 //Calls Starts conversion and reads value. This function should be called everytime 
 //a reading shoud be done from the gyro.
-uint8_t Get_angular_velocity(void)
+uint16_t Get_angular_velocity(void)
 {
 	
 	Start_conversion_gyro();
