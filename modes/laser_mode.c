@@ -278,10 +278,10 @@ void send_LIDAR_values(uint8_t delay_us)
 	}
 	
 
-	spi_send_to_module(0x00, comm_ss_port_);
-	_delay_us(300);//delay(delay_us);
-	spi_send_to_module(0x00, comm_ss_port_);
-	_delay_us(300);//delay(delay_us);
+	//spi_send_to_module(0x00, comm_ss_port_);
+	//_delay_us(300);//delay(delay_us);
+	//spi_send_to_module(0x00, comm_ss_port_);
+	//_delay_us(300);//delay(delay_us);
 
 }
 
@@ -315,8 +315,15 @@ void LIDAR_mode(void)
 	 //Activate_or_deactivate_hall2(false);
 	 //LIDAR_straight = false;
 	 PORTD &= ~((1<<PORTD4) | (1<<PORTD5) | (1<<PORTD6) | (1<<PORTD7));
-	 uint8_t curr_steering_mode = spi_send_to_module(0x00, comm_ss_port_);
-	 delay(200);
+	
+	 uint8_t curr_steering_mode;
+	 do 
+	 {
+		 curr_steering_mode = spi_send_to_module(0x00, comm_ss_port_);
+		 delay(50);
+	 } while (curr_steering_mode == 'L');
+	 
+	 
 	 Check_mode_change(curr_steering_mode);
 	 
 }
