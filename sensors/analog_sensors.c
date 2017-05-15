@@ -34,7 +34,16 @@ ISR(ADC_vect){
 }
 
 
+/*
+A0: Right IR
+A1: Left IR
+A2: Right reflex
+A3: Left reflex
+A4: Right Wheel
+A5: Left Wheel
+A6: Forward IR
 
+*/
 
 
 void read_analog_sensors(uint8_t sensor_bits)

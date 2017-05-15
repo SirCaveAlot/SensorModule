@@ -65,16 +65,35 @@ bool Send_all_values( uint16_t gyro_val, uint16_t LIDAR_val , uint8_t module_cho
 	
 	//------SEND ANALOGS---------------------------------
 	//except wheels
-	for(uint8_t i = 0 ; i < 4 ; ++i)
+	
+	//Right IR
+    if(Send_value_both_modules(_analog_sensor_values[0]))
 	{
-		
-		if(Send_value_both_modules(_analog_sensor_values[i]))
-		{
-			return true;
-		}
-		
+		return true;
+	}
+	//Left IR
+	if(Send_value_both_modules(_analog_sensor_values[1]))
+	{
+		return true;
+	}
+	//Forward IR
+    if(Send_value_both_modules(_analog_sensor_values[6]))
+    {
+	    return true;
+    }
+	//Right reflex
+	if(Send_value_both_modules(_analog_sensor_values[2]))
+	{
+		return true;
 	}
 	
+	//left reflex
+	if(Send_value_both_modules(_analog_sensor_values[3]))
+	{
+		return true;
+	}
+	
+	//right wheel
 	if(Check_color_change(_analog_sensor_values[4], 220 , 100, false))
 	{
 		++rightwheel_changed;
@@ -86,7 +105,7 @@ bool Send_all_values( uint16_t gyro_val, uint16_t LIDAR_val , uint8_t module_cho
 	}
 	rightwheel_changed = 0;
 	
-	
+	//left wheel
 	if(Check_color_change(_analog_sensor_values[5], 220 , 100, true))
 	{
 		++leftwheel_changed;
@@ -136,7 +155,7 @@ void Drive_mode(void)
 {
 	Activate_or_deactivate_counter2(true);
 	
-	read_analog_sensors(0x3F);
+	read_analog_sensors(0b01111111);
 	uint16_t gyro_value = Get_angular_velocity();
 	Enable_USART_interrupt();
 	
