@@ -259,20 +259,20 @@ void send_LIDAR_values(uint8_t delay_us)
 	for(uint16_t i = 0 ; i < vector_max_size ; ++i)
 	{  
 		spi_send_to_module(0xFF, comm_ss_port_);
-		_delay_us(300);//delay(delay_us);
+		_delay_us(250);
 		spi_send_to_module(0xFF, comm_ss_port_);
-		_delay_us(300);//delay(delay_us);
+		_delay_us(250);
 		
 		
 		spi_send_to_module((distance_vector[i]>>8), comm_ss_port_);
-		_delay_us(300);//delay(delay_us);
+		_delay_us(250);
 		spi_send_to_module(distance_vector[i], comm_ss_port_);
-		_delay_us(300);//delay(delay_us);
+		_delay_us(250);
 		
 		spi_send_to_module((angle_vector[i]>>8), comm_ss_port_);
-		_delay_us(300);//delay(delay_us);
+		_delay_us(250);
 		spi_send_to_module((angle_vector[i]), comm_ss_port_);
-		_delay_us(300);//delay(delay_us);
+		_delay_us(250);
 	    
 	
 	}
@@ -309,7 +309,7 @@ void LIDAR_mode(void)
 	 Laser_speed_mode();
 	 
 	// spi_send_to_module(0xFF, steering_ss_port_);
-	 send_LIDAR_values(50);
+	 send_LIDAR_values(100);
 	 //Activate_or_deactivate_hall2(true);
 	 //while(!LIDAR_straight);
 	 //Activate_or_deactivate_hall2(false);
