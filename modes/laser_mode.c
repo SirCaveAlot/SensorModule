@@ -91,8 +91,8 @@ ISR(USART0_RX_vect)
 		else if(_steering_mode == 'L')
 		{
 			
-		    distance_vector[vector_count] = distance_data;
-		    angle_vector[vector_count] = angle_data;//Calculate_angle();
+		    //distance_vector[vector_count] = distance_data;
+		   // angle_vector[vector_count] = angle_data;//Calculate_angle();
 		   
 			++vector_count;	
 		}
@@ -204,17 +204,30 @@ bool get_LIDAR_16bit_data(void)
 	if(temp_data == 0xFF && data_counter == 0)
 	{
 		data_counter = 1;
+		spi_send_to_module(0xFF, comm_ss_port_);
 		
+		spi_send_to_module(0xFF, comm_ss_port_);
 	}
 	else if(data_counter == 1)
 	{
+		if(_steering_mode == 'L')
+		{
+			spi_send_to_module(temp_data>>1, comm_ss_port_);
+		}
+		
 		data_counter = 2;
+		
 		distance_data = temp_data;
 		
 	}
 	else if(data_counter == 2)
 	{
+		if(_steering_mode == 'L')
+		{
+			spi_send_to_module(temp_data>>1, comm_ss_port_);
+		}
 		data_counter = 3;
+		
 		temp_data = (temp_data << 8);
 		distance_data |= temp_data;
 		distance_data = (distance_data >> 1);
@@ -222,11 +235,21 @@ bool get_LIDAR_16bit_data(void)
 	}
 	else if(data_counter == 3)
 	{
+		if(_steering_mode == 'L')
+		{
+			spi_send_to_module(temp_data, comm_ss_port_);
+		}
 		angle_data = temp_data;
+		
 		data_counter = 4;
 	}
 	else if(data_counter == 4)
-	{  
+	{   
+		if(_steering_mode == 'L')
+		{
+		   spi_send_to_module(temp_data, comm_ss_port_);
+		}
+		
 		angle_data |= (temp_data << 8);
 		data_counter = 0;
 		temp_bool = true;
@@ -309,7 +332,7 @@ void LIDAR_mode(void)
 	 Laser_speed_mode();
 	 
 	// spi_send_to_module(0xFF, steering_ss_port_);
-	 send_LIDAR_values(100);
+	// send_LIDAR_values(100);
 	 //Activate_or_deactivate_hall2(true);
 	 //while(!LIDAR_straight);
 	 //Activate_or_deactivate_hall2(false);
