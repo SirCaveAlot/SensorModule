@@ -19,7 +19,7 @@
 #include "../SensorModule.h"
 #include "../modes/laser_mode.h"
 #include "test_mode.h"
-#include "../UART.h"
+#include "../communication/UART.h"
 #include "drive_mode.h"
 
 
@@ -29,7 +29,7 @@
 
 
 
-
+//checks if mode has hnaged from the previous mode
 bool Check_mode_change(char curr_steering_mode)
 {
 	bool mode_changed = (curr_steering_mode != _steering_mode);
@@ -64,13 +64,19 @@ bool Send_all_values( uint16_t gyro_val, uint16_t LIDAR_val , uint8_t module_cho
 	}
 	
 	//------SEND ANALOGS---------------------------------
-	//except wheels
 	
-	//Right IR
+	//Right IR  front wheel
     if(Send_value_both_modules(_analog_sensor_values[0]))
 	{
 		return true;
 	}
+	
+	//Right IR back wheel
+	if(Send_value_both_modules(_analog_sensor_values[7]))
+	{
+		return true;
+	}
+	
 	//Left IR
 	if(Send_value_both_modules(_analog_sensor_values[1]))
 	{
@@ -82,16 +88,17 @@ bool Send_all_values( uint16_t gyro_val, uint16_t LIDAR_val , uint8_t module_cho
 	    return true;
     }
 	//Right reflex
-	if(Send_value_both_modules(_analog_sensor_values[2]))
+	if(Send_value_both_modules(_analog_sensor_values[3]))
 	{
 		return true;
 	}
 	
 	//left reflex
-	if(Send_value_both_modules(_analog_sensor_values[3]))
+	if(Send_value_both_modules(peepz_detected))
 	{
 		return true;
 	}
+	peepz_detected = false;
 	
 	//right wheel
 	if(Check_color_change(_analog_sensor_values[4], 220 , 100, false))
@@ -150,12 +157,12 @@ bool Send_all_values( uint16_t gyro_val, uint16_t LIDAR_val , uint8_t module_cho
 }
 
 
-
+//main function used in drive mode
 void Drive_mode(void)
 {
 	Activate_or_deactivate_counter2(true);
 	
-	read_analog_sensors(0b01111111);
+	Read_analog_sensors(0b11111111);
 	uint16_t gyro_value = Get_angular_velocity();
 	Enable_USART_interrupt();
 	
@@ -164,10 +171,10 @@ void Drive_mode(void)
 	//send with frequency of 50 hz works
 	while(tot_overflow_send < 17)
 	{
-		
-		color_check_wheel(left_wheel);
+		Check_peepz_in_needz();
+		Color_check_wheel(left_wheel);
 		left_wheel = !left_wheel;
-		for(uint16_t i = 0 ; i < 2000 ; ++i);
+		for(uint16_t i = 0 ; i < 1800 ; ++i);
 	}
 	Disable_USART_interrupt();
 	Activate_or_deactivate_counter2(false);
@@ -181,7 +188,8 @@ void Drive_mode(void)
 }
 
 
-
+//send values to both steering and comm modules. 
+//returns false if mode is unchanged. If changed returns true.
 bool Send_value_both_modules(uint8_t send_value)
 {
 	

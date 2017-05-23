@@ -15,7 +15,7 @@
 #include <stdint.h>
 
 #include <stdbool.h>
-#include "../spi.h"
+#include "../communication/spi.h"
 #include "gyro.h"
 #include "../global_definitions.h"
 

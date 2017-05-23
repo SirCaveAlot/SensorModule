@@ -10,7 +10,7 @@
 #define 	F_CPU   14745600UL
 #include "test_mode.h"
 #include "../global_definitions.h"
-#include "../spi.h"
+#include "../communication/spi.h"
 #include "../SensorModule.h"
 #include <stdbool.h>
 #include <util/delay.h>

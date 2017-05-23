@@ -17,12 +17,12 @@
 #include <stdbool.h>
 
 #include "SensorModule.h"
-#include "spi.h"
+#include "communication/spi.h"
 #include "sensors/gyro.h"
 #include "sensors/analog_sensors.h"
 #include "modes/test_mode.h"
 #include "global_definitions.h"
-#include "UART.h"
+#include "communication/UART.h"
 #include "modes/laser_mode.h"
 #include "modes/drive_mode.h"
 #include "delay.h"

@@ -35,18 +35,19 @@ ISR(ADC_vect){
 
 
 /*
-A0: Right IR
+A0: Right IR front
 A1: Left IR
 A2: Right reflex
 A3: Left reflex
 A4: Right Wheel
 A5: Left Wheel
 A6: Forward IR
+A6: Right IR back
 
 */
 
 
-void read_analog_sensors(uint8_t sensor_bits)
+void Read_analog_sensors(uint8_t sensor_bits)
 {
 	
 	for (int sensor = 0 ; sensor < 8 ; ++sensor)
@@ -55,7 +56,7 @@ void read_analog_sensors(uint8_t sensor_bits)
 		
 		if((1<<sensor) == (sensor_bits & (1<<sensor)))
 		{
-		    read_single_analog(sensor);	
+		    Read_single_analog(sensor);	
 		}
 		
 	}
@@ -66,7 +67,7 @@ void read_analog_sensors(uint8_t sensor_bits)
 
 
 
-void read_single_analog(uint8_t sensor_nr)
+void Read_single_analog(uint8_t sensor_nr)
 {
 	
 	uint8_t localADread = 0;
@@ -91,17 +92,6 @@ void read_single_analog(uint8_t sensor_nr)
 }
 
 
-
-void sensor_values_zero(void)
-{
-	for(uint8_t i = 0 ; i < 8 ; ++i)
-	{
-		
-		_analog_sensor_values[i] = 0;
-		
-	}
-	
-}
 
 
 char _wheel_color_left;
@@ -156,14 +146,16 @@ bool Check_color_change(uint8_t wheel_sensor_val , uint8_t black_threshold, uint
 
 uint8_t leftwheel_changed = 0;
 uint8_t rightwheel_changed = 0;
+uint8_t line_detected_count = 0;
+bool peepz_detected;
 
-void color_check_wheel(bool left_wheel)
+void Color_check_wheel(bool left_wheel)
 {
 	if(left_wheel)
 	{
 		PORTD &= ~(1<<PORTD5);
 		_curr_sensor = 5;
-		read_single_analog(5);
+		Read_single_analog(5);
 		if(Check_color_change(_analog_sensor_values[5], 200, 100, true))
 		{
 			++leftwheel_changed;
@@ -173,13 +165,35 @@ void color_check_wheel(bool left_wheel)
 	{
 		PORTD |= (1<<PORTD5);
 		_curr_sensor = 4;
-		read_single_analog(4);
+		Read_single_analog(4);
 	    if(Check_color_change(_analog_sensor_values[4], 200, 100, false))
 	    {
 		    ++rightwheel_changed;
 	    }
 	
 	}
+	
+}
+
+//Check if robot detect line under left 
+void Check_peepz_in_needz(void)
+{   
+	//left sensor
+	_curr_sensor = 3;
+	Read_single_analog(3);
+	if(_analog_sensor_values[3] > 250)
+	{
+		++line_detected_count;
+	    if (line_detected_count > 6)
+	    {
+	        peepz_detected = true;      
+	    }
+	}
+	else
+	{
+		line_detected_count = 0;
+	}
+
 	
 }
 

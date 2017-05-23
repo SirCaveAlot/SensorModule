@@ -62,6 +62,7 @@ void delay(uint16_t u_seconds)
 
 
 
+
 void delay_100_ms(void)
 {
 	for(uint8_t i = 0 ; i < 100 ; ++i)
@@ -69,3 +70,4 @@ void delay_100_ms(void)
 		delay(1000);
 	}
 }
+
