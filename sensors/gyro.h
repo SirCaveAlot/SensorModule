@@ -5,9 +5,6 @@
  *  Author: Marcus Wallin, marwa079
  */ 
 
-
-
-
 #ifndef GYRO_H_
 #define GYRO_H_
 
