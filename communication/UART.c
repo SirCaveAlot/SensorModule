@@ -2,7 +2,7 @@
  * UART.c
  *
  * Created: 4/10/2017 1:20:24 PM
- *  Author: marwa079
+ *  Author: Marcus Wallin, marwa079
  */ 
 #include <avr/io.h>
 #include <stdlib.h>
@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #include "UART.h"
 
-
+//initiates USART
 void USART_Init( unsigned int baud )
 {
 	/* Set baud rate */
@@ -36,7 +36,7 @@ void Disable_USART_interrupt(void)
 	UCSR0B &= ~(1<<RXCIE0);
 }
 
-
+//sends a value via UART0 port
 void USART_Transmit(uint8_t transmit_data)
 {
 	/* Wait for empty transmit buffer */
@@ -45,7 +45,7 @@ void USART_Transmit(uint8_t transmit_data)
 	UDR0 = transmit_data;
 }
 
-
+//waits until a value is received via UART0-port
 uint8_t USART_Receive( void )
 {
 	/* Wait for data to be received */

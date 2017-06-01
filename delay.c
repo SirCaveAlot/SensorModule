@@ -2,7 +2,7 @@
  * delay.c
  *
  * Created: 5/3/2017 1:18:39 PM
- *  Author: marwa079
+ *  Author: Marcus Wallin, marwa079
  */ 
 
 #include <stdint.h>
@@ -24,8 +24,7 @@ void Setup_timer2(void)
 	//prescaler on /64
 	TCCR2B = (1<<CS22) ;
 	TCNT2 = 0;
-	//enable overflow interrupts
-	//TIMSK1 |= (1<<TOIE1);
+	
 }
 
 
@@ -54,7 +53,7 @@ void delay(uint16_t u_seconds)
 	
 	uint8_t selected_counter = (u_seconds / 4.34);
 	Activate_or_deactivate_counter2(true);
-	while( TCNT2 <= selected_counter); //&& ((uint16_t)(u_seconds / 255) <= tot_overflow_send)));
+	while( TCNT2 <= selected_counter); 
 	Activate_or_deactivate_counter2(false);
 	
 	

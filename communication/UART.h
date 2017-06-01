@@ -2,7 +2,7 @@
  * UART.h
  *
  * Created: 4/10/2017 1:20:44 PM
- *  Author: marwa079
+ * Author: Marcus Wallin, marwa079
  */ 
 
 

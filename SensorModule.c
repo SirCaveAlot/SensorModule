@@ -2,10 +2,8 @@
  * SensorModule.c
  *
  * Created: 3/28/2017 9:41:33 AM
- *  Author: marwa079
+ *  Author: Marcus Wallin, marwa079
  */ 
-
-
 
 
 #include <avr/io.h>
@@ -20,7 +18,6 @@
 #include "communication/spi.h"
 #include "sensors/gyro.h"
 #include "sensors/analog_sensors.h"
-#include "modes/test_mode.h"
 #include "global_definitions.h"
 #include "communication/UART.h"
 #include "modes/laser_mode.h"
@@ -29,14 +26,9 @@
 
 
 
-//extern char UART_data;
-
 uint8_t sensor_values[8];
 
 volatile uint8_t _curr_sensor;
-
-//volatile bool LIDAR_straight = false;
-
 
 volatile char _steering_mode = 'D';
 
@@ -57,10 +49,7 @@ void interrupt_setup(void)
 void SPI_setup(void)
 {
 	
-	//ss signal to gyro, comm and steering
 	DDRB |= (1<<DDB0) | (1<<DDB1) | (1<<DDB4);
-
-	//add more values later
 
 	PORTB |= gyro_ss_port_ | comm_ss_port_ | steering_ss_port_;
 	Start_gyro();
@@ -73,30 +62,12 @@ void Overall_setup(void)
 	
 	_comm_mode = 'T';
 	_steering_mode = 'D';
-	
-	//DDRB |= (1<<DDB3) ;
-	
-}
 
-volatile bool speed_bool = false;
-//interrupt vector for the ADC
-
-//sets up the SPI properly and activates the Gyro.
-ISR(INT0_vect)
-{
-	
-	//LIDAR_straight = true;
-	
-	
-	
-	
 }
 
 
 
 //--------------MAIN----------------------------------------------------------
-
-
 
 int main(void)
 {   
@@ -109,8 +80,6 @@ int main(void)
 	USART_Init(UBBR);
 	DDRD |=  (1<<DDD4) | (1<<DDD5) | (1<<DDD6) | (1<<DDD7);
 
-
-	
 	Setup_timer0();
 	Setup_timer2();
 	sei();
@@ -125,7 +94,7 @@ int main(void)
 
 
 
-
+//the big function where the loop takes place.
 void Mode_loop(void)
 {
 
@@ -157,7 +126,6 @@ void Mode_loop(void)
 					 spi_send_to_module(0x00, steering_ss_port_);
 				     PORTD |= (1<<PORTD5);
 					 
-					 
 				break;
 				
 				//test mode
@@ -167,7 +135,6 @@ void Mode_loop(void)
 					 curr_steering_mode = spi_send_to_module(0x00, comm_ss_port_);
 					 Check_mode_change(curr_steering_mode);
 					 
-					
 				break;
 				
 				default:
@@ -184,13 +151,5 @@ void Mode_loop(void)
 	}
 
 }
-
-
-
-
-
-
-
-
 
 

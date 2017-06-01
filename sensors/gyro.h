@@ -2,7 +2,7 @@
  * gyro.h
  *
  * Created: 3/29/2017 1:05:12 PM
- *  Author: marwa079
+ *  Author: Marcus Wallin, marwa079
  */ 
 
 
@@ -13,8 +13,6 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
-
-//#define _gyro_ss 0b00000001
 
 bool Activate_gyro(void);
 

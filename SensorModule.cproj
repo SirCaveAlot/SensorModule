@@ -165,12 +165,6 @@
     <Compile Include="modes\laser_mode.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="modes\test_mode.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="modes\test_mode.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="SensorModule.c">
       <SubType>compile</SubType>
     </Compile>

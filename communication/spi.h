@@ -1,3 +1,11 @@
+/*
+ * spi.h
+ *
+ * Created: 4/10/2017 1:20:24 PM
+ *  Author: Marcus Wallin, marwa079
+ */ 
+
+
 #ifndef __SPI_H
 #define __SPI_H
 
@@ -36,5 +44,7 @@ uint8_t spi_send(uint8_t value);
 void ss_to_low(uint8_t port_nr);
 
 void ss_to_high(uint8_t port_nr);
+
+char spi_send_to_module(uint8_t val, uint8_t module_choice);
 
 #endif

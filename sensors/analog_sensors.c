@@ -2,7 +2,7 @@
  * analog_sensors.c
  *
  * Created: 3/30/2017 3:52:27 PM
- *  Author: marwa079
+ *  Author: Marcus Wallin, marwa079
  */ 
 
 #include "analog_sensors.h"
@@ -20,10 +20,9 @@ volatile uint8_t _analog_sensor_values[8];
 
 
 
-
+//interrupt vector for the ADC
 ISR(ADC_vect){
 	
-
 	_analog_sensor_values[_curr_sensor] = ADCH;
 	
 	ADCSRA = 0x00;
@@ -43,10 +42,10 @@ A4: Right Wheel
 A5: Left Wheel
 A6: Forward IR
 A6: Right IR back
-
+A7: Left IR back 
 */
 
-
+//reads all aanalog sensors
 void Read_analog_sensors(uint8_t sensor_bits)
 {
 	
@@ -66,7 +65,7 @@ void Read_analog_sensors(uint8_t sensor_bits)
 }
 
 
-
+//reads a single analog sensor
 void Read_single_analog(uint8_t sensor_nr)
 {
 	
@@ -97,8 +96,9 @@ void Read_single_analog(uint8_t sensor_nr)
 char _wheel_color_left;
 char _wheel_color_right;
 
-
-bool Check_color_change(uint8_t wheel_sensor_val , uint8_t black_threshold, uint8_t white_threshold, bool left_wheel)
+//checks if the colors on the wheels have changed. Returns true if so.
+bool Check_color_change(uint8_t wheel_sensor_val , uint8_t black_threshold, 
+						uint8_t white_threshold, bool left_wheel)
 {
 	char curr_color; 
 	cli();
@@ -149,6 +149,8 @@ uint8_t rightwheel_changed = 0;
 uint8_t line_detected_count = 0;
 bool peepz_detected;
 
+//reads left wheel if left_wheel is true. Otherwise right_wheel.
+//Also calls for Check_color_change
 void Color_check_wheel(bool left_wheel)
 {
 	if(left_wheel)
@@ -176,6 +178,8 @@ void Color_check_wheel(bool left_wheel)
 }
 
 //Check if robot detect line under left 
+//it needs to have detected a black line 6 7 times to set
+//peepz_detected to true
 void Check_peepz_in_needz(void)
 {   
 	//left sensor
@@ -193,8 +197,6 @@ void Check_peepz_in_needz(void)
 	{
 		line_detected_count = 0;
 	}
-
-	
 }
 
 

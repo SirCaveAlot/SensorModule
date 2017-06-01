@@ -2,7 +2,7 @@
  * laser_mode.h
  *
  * Created: 4/3/2017 3:30:25 PM
- *  Author: marwa079
+ *  Author: Marcus Wallin, marwa079
  */ 
 
 
@@ -15,18 +15,16 @@
 void Setup_timer0(void);
 extern uint16_t counter_val; 
 extern volatile uint16_t tot_overflow;
-//extern volatile uint16_t UART_data;
+
 extern volatile uint16_t LIDAR_distance;
 
-bool Steady_LIDAR_ang_vel(void);
 
 void Activate_or_deactivate_counter0(bool activate_count);
 void Laser_speed_mode(void);
-uint16_t Calculate_angle(void);
+
 uint16_t Single_reading_LIDAR(void);
 
 void send_LIDAR_values(uint8_t delay_us);
-void Activate_or_deactivate_hall2(bool act_or_de);
 
 bool get_LIDAR_16bit_data(void);
 void LIDAR_mode(void);

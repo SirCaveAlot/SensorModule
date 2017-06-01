@@ -2,7 +2,7 @@
  * delay.h
  *
  * Created: 5/3/2017 1:20:15 PM
- *  Author: marwa079
+ *  Author: Marcus Wallin, marwa079
  */ 
 
 

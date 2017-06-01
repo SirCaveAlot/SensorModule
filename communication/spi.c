@@ -1,3 +1,11 @@
+/*
+ * spi.c
+ *
+ * Created: 4/10/2017 1:20:24 PM
+ *  Author: Marcus Wallin, marwa079
+ */ 
+
+
 #include <inttypes.h>
 #include <avr/io.h>
 #include "spi.h"
@@ -13,6 +21,7 @@ const uint8_t __SPI_MODE_MASK = 0b00000011;
 const uint8_t __SPI_SPEED_MASK = 0b00000011;
 const uint8_t __SPI_DBLCLK_MASK = 0b00000001;
 
+//function found on the internet
 //initialize the SPI bus
 //  uint8_t lsbfirst - if 0: most significant bit is transmitted first
 //  uint8_t master - if 1: use master mode, if 0: slave mode is used
@@ -56,6 +65,7 @@ void spi_init(uint8_t lsbfirst,
   SPSR = ((dblclk&__SPI_DBLCLK_MASK)<<SPI2X);
 }
 
+//function found on the internet
 //shifts out 8 bits of data
 //  uint8_t data - the data to be shifted out
 //  returns uint8_t - the data received during sending
@@ -73,17 +83,30 @@ uint8_t spi_send(uint8_t value){
 }
 
 
-
+//sets ss to low at specified module
 void ss_to_low(uint8_t port_nr)
 {
-	
 	PORTB &= ~port_nr;
-	
 }
 
+
+//sets ss to high at specified module
 void ss_to_high(uint8_t port_nr)
 {
-	
 	PORTB |= port_nr;
+}
+
+
+//sends an 8 bit value to a specified module
+char spi_send_to_module(uint8_t val, uint8_t module_choice)
+{
+	char return_mode;
 	
+	ss_to_low(module_choice);
+	
+	return_mode = spi_send(val);
+	
+	ss_to_high(module_choice);
+	
+	return return_mode;
 }

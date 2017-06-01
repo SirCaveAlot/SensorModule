@@ -2,7 +2,7 @@
  * global_definitions.h
  *
  * Created: 4/3/2017 2:49:14 PM
- *  Author: marwa079
+ *  Author: Marcus Wallin, marwa079
  */ 
 
 

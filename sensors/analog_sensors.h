@@ -2,7 +2,7 @@
  * analog_sensors.h
  *
  * Created: 3/30/2017 3:52:46 PM
- *  Author: marwa079
+ *  Author: Marcus Wallin, marwa079
  */ 
 
 

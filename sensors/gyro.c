@@ -2,7 +2,7 @@
  * gyro.c
  *
  * Created: 3/29/2017 1:29:11 PM
- *  Author: marwa079
+ *  Author: Marcus Wallin, marwa079
  */ 
 
 
@@ -60,7 +60,6 @@ bool Check_EOC_bit(void)
 
 //Calls Activate and then checks EOC bit until set.
 //This function should be called in the initializing of the processor.
-
 bool Start_gyro(void)
 {
 	bool gyro_ready = false;
@@ -88,9 +87,7 @@ void Start_conversion_gyro(void)
 	spi_send(0b10010100);
 	spi_send(0b00000000);
 	ss_to_high(gyro_ss_port_);
-	
-	//check if retrieved high_bit
-	
+
 }
 
 //Reads Gyro until data is receieved (EOC is high).
@@ -113,8 +110,7 @@ uint16_t Read_gyro(void)
 	} while (!EOC_high);
 	
 	data = (data & 0x0FFE);
-	
-	//change to 8 bit
+
 	return (data >> 1);
 	
 }

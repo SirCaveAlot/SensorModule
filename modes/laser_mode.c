@@ -2,7 +2,7 @@
  * laser_mode.c
  *
  * Created: 4/3/2017 3:30:13 PM
- *  Author: marwa079
+ *  Author: Marcus Wallin, marwa079
  */ 
 
 
@@ -39,8 +39,7 @@ volatile uint16_t LIDAR_distance;
 
 volatile uint16_t last_full_rotate_time = 0;
 volatile uint16_t vector_count = 0;
-volatile bool LSByte = false;
-//volatile uint8_t LIDAR_half = 0;
+
 
 
 void Setup_timer0(void)
@@ -48,8 +47,7 @@ void Setup_timer0(void)
 	//prescaler on /8
 	TCCR0B = (1<<CS01) ;
 	TCNT0 = 0;
-	//enable overflow interrupts
-	//TIMSK1 |= (1<<TOIE1);
+	
 }
 
 
@@ -75,12 +73,10 @@ ISR(INT1_vect)
 	tot_overflow = 0;
 }
 
-
+//interrupt vector for UART0
 ISR(USART0_RX_vect)
 {
-	
-	
-	
+
 	if(get_LIDAR_16bit_data())
 	{
 		
@@ -101,24 +97,11 @@ ISR(USART0_RX_vect)
 			LIDAR_distance = distance_data;
 			
 		}
-		
 	}
-	
-	
-	
 }
+
 
 //-----------------------------------------------------------------------------
-
-
-
-uint16_t Calculate_angle(void)
-{
-	//muliply this with any number to get angle
-	return (tot_overflow / last_full_rotate_time) * 1000;  //+ LIDAR_half
-}
-
-
 
 //activates or deactivates Overflow interrupts for the timer
 void Activate_or_deactivate_counter0(bool activate_count)
@@ -145,35 +128,23 @@ void Activate_or_deactivate_counter0(bool activate_count)
 //reads the LIDAR vector_max_size times. Is used when LIDAR is rotating.
 void Laser_speed_mode(void)
 {
-	//Disable_USART_interrupt();
-	//cli();
-	//Activate_or_deactivate_counter0(true);
+	
 	magnet_count = 0;
 	vector_count = 0;
 	sei();
-	//while(!Steady_LIDAR_ang_vel()) {};
-	//cli();
-	
+
 	Enable_USART_interrupt();
 	USART_Transmit('L');
-	
-	//sei();
-	//while (PORTD);
-    //LIDAR_half = 0;
+
 	PORTD |= (1<<PORTD6);
 	
 	while(vector_count < vector_max_size);
-	   //outer hall sensor
-		//if (LIDAR_half == 1 && PORTD)
-		//{
-		//	LIDAR_half = 0;
-		//}
-	
+
 	cli();
 	
 	USART_Transmit('D');
 	Disable_USART_interrupt();
-	//Activate_or_deactivate_counter0(false);
+
 	PORTD |= (1<<PORTD5);
 	vector_count = 0;
 	magnet_count = 0;
@@ -184,17 +155,11 @@ void Laser_speed_mode(void)
 
 
 
-
-bool Steady_LIDAR_ang_vel(void)
-{
-	
-	return (magnet_count >= 4);
-	
-}
-
 volatile uint8_t data_counter;
 //sets MSByte false if UART receives a 0.
-//When the next interrupt comes, the MSByte will be set to true.
+//waits for the LIDAR value to be complete.
+//returns true if all data is received in the current mode
+//if false all data is not received
 bool get_LIDAR_16bit_data(void)
 {
 	uint16_t temp_data = UDR0;
@@ -209,9 +174,7 @@ bool get_LIDAR_16bit_data(void)
 	else if(data_counter == 1)
 	{
 		
-		
 		data_counter = 2;
-		
 		distance_data = (temp_data<<8);
 		
 	}
@@ -246,12 +209,13 @@ bool get_LIDAR_16bit_data(void)
 		temp_bool = true;
 	}
 	return temp_bool;
-	//maybe transmit further or do something with the data
+
 	
 }
 
 
 //currently not used
+//sends an instruction to the LIDAR tower to starta measurement and send it back.
 uint16_t Single_reading_LIDAR(void)
 {
 	USART_Transmit('S');
@@ -266,7 +230,7 @@ uint16_t Single_reading_LIDAR(void)
 
 
 
-//returns false if something failed
+//sends all LIDAR values to the communication module
 void send_LIDAR_values(uint8_t delay_us)
 {
 	
@@ -290,44 +254,20 @@ void send_LIDAR_values(uint8_t delay_us)
 	    
 	
 	}
-	
-
-	//spi_send_to_module(0x00, comm_ss_port_);
-	//_delay_us(300);//delay(delay_us);
-	//spi_send_to_module(0x00, comm_ss_port_);
-	//_delay_us(300);//delay(delay_us);
 
 }
 
 
 
-void Activate_or_deactivate_hall2(bool act_or_de)
-{
-	if(act_or_de)
-	{
-		EIMSK |= (1<<INT0);
-	}
-	else
-	{
-		EIMSK &= ~(1<<INT0);
-	}
-}
-
-
-
-
-
+//main function used in LIDAR mode ('L')
 void LIDAR_mode(void)
 {
 	 PORTD |= (1<<PORTD7);
 	 Laser_speed_mode();
 	 
-	// spi_send_to_module(0xFF, steering_ss_port_);
+	
 	 send_LIDAR_values(100);
-	 //Activate_or_deactivate_hall2(true);
-	 //while(!LIDAR_straight);
-	 //Activate_or_deactivate_hall2(false);
-	 //LIDAR_straight = false;
+
 	 PORTD &= ~((1<<PORTD4) | (1<<PORTD5) | (1<<PORTD6) | (1<<PORTD7));
 	
 	 uint8_t curr_steering_mode;

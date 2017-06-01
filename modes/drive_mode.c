@@ -2,7 +2,7 @@
  * drive_mode.c
  *
  * Created: 4/25/2017 8:57:07 AM
- *  Author: marwa079
+ *  Author: Marcus Wallin, marwa079
  */ 
 
 
@@ -22,14 +22,7 @@
 #include "../communication/UART.h"
 #include "drive_mode.h"
 
-
-
-
-
-
-
-
-//checks if mode has hnaged from the previous mode
+//checks if mode has changed from the previous mode
 bool Check_mode_change(char curr_steering_mode)
 {
 	bool mode_changed = (curr_steering_mode != _steering_mode);
@@ -47,7 +40,6 @@ bool Check_mode_change(char curr_steering_mode)
 
 
 //Sends all values to both modules and returns true if mode has changed during the send
-//
 bool Send_all_values( uint16_t gyro_val, uint16_t LIDAR_val , uint8_t module_choice)
 {
 	
@@ -93,7 +85,7 @@ bool Send_all_values( uint16_t gyro_val, uint16_t LIDAR_val , uint8_t module_cho
 		return true;
 	}
 	
-	//left reflex
+	//distressed detected
 	if(Send_value_both_modules(peepz_detected))
 	{
 		return true;
@@ -145,13 +137,10 @@ bool Send_all_values( uint16_t gyro_val, uint16_t LIDAR_val , uint8_t module_cho
 		return true;
 	}
 	
-	
 	if(Send_value_both_modules(LIDAR_low_byte))
 	{
 		return true;
 	}
-	
-
 	
 	return false;
 }
@@ -168,7 +157,7 @@ void Drive_mode(void)
 	
 	bool left_wheel = true;
 	
-	//send with frequency of 50 hz works
+	//send with frequency of 50 hz 
 	while(tot_overflow_send < 17)
 	{
 		Check_peepz_in_needz();
@@ -182,7 +171,6 @@ void Drive_mode(void)
 	
 	Send_all_values(gyro_value, LIDAR_distance, comm_ss_port_);
 	
-		
 	PORTD &= ~(1<<PORTD6);
 	
 }
@@ -199,7 +187,6 @@ bool Send_value_both_modules(uint8_t send_value)
 		delay(40);
 		return true;
 	}
-	
 	
 	spi_send_to_module(send_value, steering_ss_port_);
 	delay(40);
